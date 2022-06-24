@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">AML Weather</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="search_notes">Search a different city</string>
+    <string name="cloud_cover">Cloud Cover</string>
+    <string name="humidity">Humidity</string>
+    <string name="wind">Wind</string>
+    <string name="today">Today</string>
+    <string name="next_7_days">Next 7 days</string>
+    <string name="top_cities">Top cities</string>
 </resources>
