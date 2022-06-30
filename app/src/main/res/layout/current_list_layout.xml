@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/grey_round_corner"
+    android:paddingHorizontal="32dp"
+    android:paddingTop="16dp"
+    android:layout_marginEnd="24dp">
+    <ImageView
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:id="@+id/icon"
+        android:layout_gravity="center"
+        android:src="@drawable/ic_todo_list"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="loren"
+        android:id="@+id/temp"
+        android:textSize="20sp"
+        android:textColor="@color/white"
+        android:layout_marginBottom="12dp"/>
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:id="@+id/time"
+        android:text="loren"
+        android:textColor="@color/white"
+        android:layout_marginBottom="24dp"/>
+</LinearLayout>
