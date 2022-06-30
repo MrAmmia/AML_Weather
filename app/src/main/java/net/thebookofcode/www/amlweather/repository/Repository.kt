@@ -10,7 +10,11 @@ class Repository {
         return RetrofitInstance.api.getWeather()
     }
 
-    suspend fun getWeatherByLocation(longNum:Double,latNum:Double):Response<Weather>{
+    suspend fun getWeatherByLocation(longNum: Double, latNum: Double): Response<Weather> {
         return RetrofitInstance.api.getWeatherByLocation(longNum, latNum)
+    }
+
+    suspend fun getWeatherByTown(town: String): Response<Weather> {
+        return RetrofitInstance.api.getWeatherByTown(town)
     }
 }

@@ -9,4 +9,7 @@
     <string name="today">Today</string>
     <string name="next_7_days">Next 7 days</string>
     <string name="top_cities">Top cities</string>
+    <string name="use_location">Use location!</string>
+    <string name="loading">...Loading!!</string>
+    <string name="unknown">.???</string>
 </resources>

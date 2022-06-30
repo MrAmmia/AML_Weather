@@ -46,6 +46,13 @@ data class Weather(
     @SerializedName("address")
     val address: String,
 
+    @SerializedName("description")
+    val description: String,
+
+    @SerializedName("conditions")
+    val condition: String,
+
+
     @SerializedName("timezone")
     val timezone: String,
 
@@ -53,7 +60,7 @@ data class Weather(
     val tzoffset: Double,
 
     @SerializedName("days")
-    val days: List<Days>? = null,
+    val days: List<Days>,
 
     @SerializedName("currentConditions")
     val currentConditions: CurrentConditions
