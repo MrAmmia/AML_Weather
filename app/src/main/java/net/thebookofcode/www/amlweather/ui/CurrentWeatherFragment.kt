@@ -120,7 +120,7 @@ class CurrentWeatherFragment : Fragment() {
                                 )
                                 binding.recyclerView.adapter = adapter
                             })
-                        }
+                        }else{}
                     }
             }
 
