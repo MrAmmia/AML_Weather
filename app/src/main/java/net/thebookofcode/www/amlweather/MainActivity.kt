@@ -3,6 +3,7 @@ package net.thebookofcode.www.amlweather
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import dagger.hilt.android.AndroidEntryPoint
 import net.thebookofcode.www.amlweather.adapter.ViewPagerAdapter
 import net.thebookofcode.www.amlweather.databinding.ActivityMainBinding
 import net.thebookofcode.www.amlweather.model.MainViewModel
@@ -10,6 +11,7 @@ import net.thebookofcode.www.amlweather.ui.CurrentWeatherFragment
 import net.thebookofcode.www.amlweather.ui.FutureWeatherFragment
 import net.thebookofcode.www.amlweather.ui.OtherCitiesFragment
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private lateinit var binding:ActivityMainBinding
     private lateinit var viewModel: MainViewModel

@@ -5,7 +5,6 @@ import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -14,17 +13,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import net.thebookofcode.www.amlweather.R
-import net.thebookofcode.www.amlweather.adapter.CurrentRecyclerAdapter
 import net.thebookofcode.www.amlweather.adapter.FutureRecyclerAdapter
 import net.thebookofcode.www.amlweather.databinding.FragmentFutureWeatherBinding
+import net.thebookofcode.www.amlweather.entity.Weather
 import net.thebookofcode.www.amlweather.model.MainViewModel
-import net.thebookofcode.www.amlweather.model.MainViewModelFactory
-import net.thebookofcode.www.amlweather.repository.Repository
+import net.thebookofcode.www.amlweather.util.DataState
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.HashMap
@@ -32,9 +29,7 @@ import kotlin.collections.HashMap
 class FutureWeatherFragment : Fragment() {
     private var _binding:FragmentFutureWeatherBinding? = null
     private val binding get() = _binding!!
-    private val viewModel: MainViewModel by activityViewModels {
-        MainViewModelFactory(Repository())
-    }
+    private val viewModel: MainViewModel by activityViewModels()
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,8 +45,7 @@ class FutureWeatherFragment : Fragment() {
         // Inflate the layout for this fragment
         _binding = FragmentFutureWeatherBinding.inflate(inflater, container, false)
         //binding.shimmer.startShimmer()
-        binding.shimmerCardLayout.startShimmer()
-        binding.shimmerRecyclerLayout.startShimmer()
+        startShimmer()
 
         val requestPermissionLauncher =
             registerForActivityResult(
@@ -60,12 +54,14 @@ class FutureWeatherFragment : Fragment() {
                 if (isGranted) {
                     // Permission is granted. Continue the action or workflow in your
                     // app.
+                    startShimmer()
                 } else {
                     // Explain to the user that the feature is unavailable because the
                     // features requires a permission that the user has denied. At the
                     // same time, respect the user's decision. Don't link to system
                     // settings in an effort to convince the user to change their
                     // decision.
+                    showInContextUI()
                 }
             }
         when {
@@ -78,29 +74,31 @@ class FutureWeatherFragment : Fragment() {
                     .addOnSuccessListener { location: Location? ->
                         // Got last known location. In some rare situations this can be null.
                         if (location != null) {
-                            viewModel.getWeatherByLocation(location.longitude, location.latitude)
+                            //viewModel.getWeatherByLocation(location.longitude, location.latitude)
                             viewModel.myResponseByLocation.observe(viewLifecycleOwner, Observer {
-                                Log.i("Response", it.body().toString())
-                                binding.shimmerCardLayout.stopShimmer()
-                                binding.shimmerRecyclerLayout.stopShimmer()
-                                binding.shimmerCardLayout.visibility = View.GONE
-                                binding.shimmerRecyclerLayout.visibility = View.GONE
-                                binding.location.visibility = View.VISIBLE
-                                binding.cardView.visibility = View.VISIBLE
-                                binding.recyclerView.visibility = View.VISIBLE
-
-
-                                binding.txtCondition.text = it.body()!!.days[0].icon
-                                binding.txtTemp.text = farenheitToDegree(it.body()!!.days[0].temp)
-                                binding.txtDate.text = getFormattedDate(it.body()!!.days[0].datetime)
-                                binding.imgIcon.setImageResource(getIcon(it.body()!!.days[0].icon)!!)
-                                binding.humidity.text = formatPercent(it.body()!!.days[0].humidity)
-                                binding.wind.text = formatKilometers(it.body()!!.days[0].windspeed)
-                                binding.cloudCover.text = formatPercent(it.body()!!.days[0].cloudcover)
-                                val adapter = FutureRecyclerAdapter(it.body()!!.days)
-                                binding.recyclerView.layoutManager = LinearLayoutManager(requireActivity())
-                                binding.recyclerView.adapter = adapter
+                                //Log.i("Response", it.body().toString())
+                                if(it is DataState.Loading && it.data == null){
+                                    startShimmer()
+                                    shimmerVisible()
+                                    layoutsGone()
+                                }else if (it is DataState.Success){
+                                    showWeatherInViews(it, it.data!!)
+                                    stopShimmer()
+                                    shimmerGone()
+                                    layoutsVisible()
+                                    val adapter = FutureRecyclerAdapter(it.data.days)
+                                    binding.recyclerView.layoutManager = LinearLayoutManager(requireActivity())
+                                    binding.recyclerView.adapter = adapter
+                                }
+                                else if(it is DataState.Error){
+                                    errorOccurred()
+                                }
+                                else{
+                                    errorOccurred()
+                                }
                             })
+                        }else{
+                            checkLocation()
                         }
                     }
             }
@@ -121,6 +119,51 @@ class FutureWeatherFragment : Fragment() {
             }
         }
         return binding.root
+    }
+
+    private fun showWeatherInViews(
+        it: DataState<Weather>,
+        data: Weather
+    ) {
+        binding.txtCondition.text = it.data!!.days[0].icon
+        binding.txtTemp.text = farenheitToDegree(data.days[0].temp)
+        binding.txtDate.text = getFormattedDate(data.days[0].datetime)
+        binding.imgIcon.setImageResource(getIcon(data.days[0].icon)!!)
+        binding.humidity.text = formatPercent(data.days[0].humidity)
+        binding.wind.text = formatKilometers(data.days[0].windspeed)
+        binding.cloudCover.text = formatPercent(data.days[0].cloudcover)
+    }
+
+    private fun startShimmer() {
+        binding.shimmerCardLayout.startShimmer()
+        binding.shimmerRecyclerLayout.startShimmer()
+    }
+
+    private fun layoutsVisible() {
+        binding.location.visibility = View.VISIBLE
+        binding.cardView.visibility = View.VISIBLE
+        binding.recyclerView.visibility = View.VISIBLE
+    }
+
+    private fun shimmerGone() {
+        binding.shimmerCardLayout.visibility = View.GONE
+        binding.shimmerRecyclerLayout.visibility = View.GONE
+    }
+
+    private fun layoutsGone() {
+        binding.location.visibility = View.GONE
+        binding.cardView.visibility = View.GONE
+        binding.recyclerView.visibility = View.GONE
+    }
+
+    private fun shimmerVisible() {
+        binding.shimmerCardLayout.visibility = View.VISIBLE
+        binding.shimmerRecyclerLayout.visibility = View.VISIBLE
+    }
+
+    private fun stopShimmer() {
+        binding.shimmerCardLayout.stopShimmer()
+        binding.shimmerRecyclerLayout.stopShimmer()
     }
 
     private fun showInContextUI() {
@@ -170,6 +213,19 @@ class FutureWeatherFragment : Fragment() {
 
     fun formatKilometers(item:Double):String{
         return item.toInt().toString() + "Km/h"
+    }
+
+    private fun checkLocation() {
+        AlertDialog.Builder(requireContext()).setTitle("Alert")
+            .setMessage("AML Weather could not get location, please check Location is turned on and try again")
+            .setCancelable(true)
+            .show()
+    }
+    private fun errorOccurred() {
+        AlertDialog.Builder(requireContext()).setTitle("Alert")
+            .setMessage("Oops, an error occurred")
+            .setCancelable(true)
+            .show()
     }
 
     override fun onDestroy() {

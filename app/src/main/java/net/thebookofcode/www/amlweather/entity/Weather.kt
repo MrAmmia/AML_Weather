@@ -1,9 +1,7 @@
 package net.thebookofcode.www.amlweather.entity
 
+
 import com.google.gson.annotations.SerializedName
-import org.json.JSONArray
-import java.util.*
-import kotlin.collections.ArrayList
 
 /*
 
@@ -32,6 +30,8 @@ final query sample
 https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/London,UK/next6days?key=V298VZTM3M5G26YJLZW495QF9&include=days%2Chours%2fcst%2Ccurrent%2Chours&elements=tempmax,tempmin,temp,humidity,precip,preciptype,precibprob,winddir,windspeed,feelslike,icon,snow,snowdepth,datetime
 include days,hours
  */
+
+
 
 data class Weather(
     @SerializedName("latitude")
@@ -64,4 +64,6 @@ data class Weather(
 
     @SerializedName("currentConditions")
     val currentConditions: CurrentConditions
-)
+) {
+    var town: String? = null
+}

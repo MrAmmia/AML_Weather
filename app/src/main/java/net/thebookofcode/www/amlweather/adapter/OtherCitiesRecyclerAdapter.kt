@@ -5,13 +5,17 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import net.thebookofcode.www.amlweather.R
 import net.thebookofcode.www.amlweather.databinding.OtherCitiesListLayoutBinding
+import net.thebookofcode.www.amlweather.entity.OtherWeather
 import net.thebookofcode.www.amlweather.entity.Weather
+import net.thebookofcode.www.amlweather.recyclerIterface.ListItemListener
 import retrofit2.Response
 
-class OtherCitiesRecyclerAdapter(private var mSource : List<Response<Weather>>):RecyclerView.Adapter<OtherCitiesRecyclerAdapter.ViewHolder>() {
+class OtherCitiesRecyclerAdapter():RecyclerView.Adapter<OtherCitiesRecyclerAdapter.ViewHolder>() {
+    private var mSource =  ArrayList<OtherWeather>()
+    private var listener: ListItemListener? = null
 
     inner class ViewHolder(private val itemBinding:OtherCitiesListLayoutBinding):RecyclerView.ViewHolder(itemBinding.root){
-        fun bind(weather: Weather){
+        fun bind(weather: OtherWeather){
             //itemBinding.icon
             itemBinding.city.text = weather.address
             itemBinding.temp.text = farenheitToDegree(weather.currentConditions.temp)
@@ -25,8 +29,13 @@ class OtherCitiesRecyclerAdapter(private var mSource : List<Response<Weather>>):
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val currentWeather = mSource[position].body()!!
+        val currentWeather = mSource[position]
         holder.bind(currentWeather)
+        holder.itemView.setOnClickListener {
+            if (listener != null && position != RecyclerView.NO_POSITION) {
+                listener!!.onItemClick(currentWeather)
+            }
+        }
     }
 
     override fun getItemCount(): Int {
@@ -57,4 +66,19 @@ class OtherCitiesRecyclerAdapter(private var mSource : List<Response<Weather>>):
         iconMap["showers-night"] = R.drawable.showers_night
         return iconMap[icon]
     }
+
+    /*fun setWeather(words: List<Response<Weather>>?) {
+        this.mSource = words as ArrayList<Response<Weather>>
+        notifyDataSetChanged()
+    }*/
+
+    fun addWeather(weather: OtherWeather){
+      mSource.add(weather)
+      notifyDataSetChanged()
+    }
+
+    fun setOnItemClick(listItemListener: ListItemListener?) {
+        this.listener = listItemListener
+    }
+
 }

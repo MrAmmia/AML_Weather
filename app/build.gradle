@@ -1,6 +1,9 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'kotlin-kapt'
+    id 'dagger.hilt.android.plugin'
+    id 'androidx.navigation.safeargs.kotlin'
 }
 
 android {
@@ -52,15 +55,37 @@ dependencies {
     implementation "com.squareup.retrofit2:converter-gson:2.6.0"
     implementation "com.squareup.okhttp3:logging-interceptor:4.5.0"
 
+    // dagger hilt
+    implementation("com.google.dagger:hilt-android:$rootProject.hilt_version")
+    kapt("com.google.dagger:hilt-android-compiler:$rootProject.hilt_version")
+    implementation("androidx.hilt:hilt-lifecycle-viewmodel:$rootProject.hilt_viewmodels")
+    kapt("androidx.hilt:hilt-compiler:$rootProject.hilt_viewmodels")
+
+    //GSON
+    implementation("com.google.code.gson:gson:2.8.9")
+
+    // Room components
+    implementation "androidx.room:room-ktx:$rootProject.roomVersion"
+    kapt "androidx.room:room-compiler:$rootProject.roomVersion"
+    androidTestImplementation "androidx.room:room-testing:$rootProject.roomVersion"
+
     // Coroutines
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.1"
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.1"
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.4.1"
+
+    // Lifecycle components
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$rootProject.lifecycleVersion"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$rootProject.lifecycleVersion"
+    implementation "androidx.lifecycle:lifecycle-common-java8:$rootProject.lifecycleVersion"
+    implementation "androidx.lifecycle:lifecycle-process:$rootProject.lifecycleVersion"
 
     // Google play services
     implementation 'com.google.android.gms:play-services-location:20.0.0'
 
     // Shimmer implementation
     implementation "com.facebook.shimmer:shimmer:0.5.0"
+
+    // Navigation components
+    implementation "androidx.navigation:navigation-fragment-ktx:$rootProject.navVersion"
+    implementation "androidx.navigation:navigation-ui-ktx:$rootProject.navVersion"
 }

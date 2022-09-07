@@ -15,27 +15,26 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import dagger.hilt.android.AndroidEntryPoint
 import net.thebookofcode.www.amlweather.R
 import net.thebookofcode.www.amlweather.adapter.CurrentRecyclerAdapter
 import net.thebookofcode.www.amlweather.databinding.FragmentCurrentWeatherBinding
+import net.thebookofcode.www.amlweather.entity.Weather
 import net.thebookofcode.www.amlweather.model.MainViewModel
-import net.thebookofcode.www.amlweather.model.MainViewModelFactory
-import net.thebookofcode.www.amlweather.repository.Repository
+import net.thebookofcode.www.amlweather.util.DataState
 import java.text.SimpleDateFormat
 import java.util.*
 
-
+@AndroidEntryPoint
 class CurrentWeatherFragment : Fragment() {
     private var _binding: FragmentCurrentWeatherBinding? = null
     private val binding get() = _binding!!
-    private val viewModel: MainViewModel by activityViewModels {
-        MainViewModelFactory(Repository())
-    }
+    private val viewModel: MainViewModel by activityViewModels()
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,9 +56,7 @@ class CurrentWeatherFragment : Fragment() {
                     // Permission is granted. Continue the action or workflow in your
                     // app.
                     //binding.shimmer.startShimmer()
-                    binding.currentTopShimmer.startShimmer()
-                    binding.shimmerRecyclerLayout.startShimmer()
-                    binding.shimmerLinearLayout.startShimmer()
+                    startShimmer()
                     //binding.location.visibility = View.VISIBLE
                     binding.noLocation.visibility = View.GONE
                 } else {
@@ -68,6 +65,9 @@ class CurrentWeatherFragment : Fragment() {
                     // same time, respect the user's decision. Don't link to system
                     // settings in an effort to convince the user to change their
                     // decision.
+                    showInContextUI()
+                    binding.location.visibility = View.GONE
+                    binding.noLocation.visibility = View.VISIBLE
                 }
             }
         when {
@@ -76,51 +76,43 @@ class CurrentWeatherFragment : Fragment() {
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED -> {
                 // You can use the API that requires the permission.
-                //binding.shimmer.startShimmer()
-                binding.currentTopShimmer.startShimmer()
-                binding.shimmerRecyclerLayout.startShimmer()
-                binding.shimmerLinearLayout.startShimmer()
+                startShimmer()
                 //binding.location.visibility = View.VISIBLE
                 binding.noLocation.visibility = View.GONE
                 fusedLocationClient.lastLocation
                     .addOnSuccessListener { location: Location? ->
                         // Got last known location. In some rare situations this can be null.
                         if (location != null) {
-                            viewModel.getWeatherByLocation(location.longitude, location.latitude)
+                            //viewModel.getWeatherByLocation(location.longitude, location.latitude)
                             viewModel.myResponseByLocation.observe(viewLifecycleOwner, Observer {
-                                Log.i("Response", it.body()!!.currentConditions.toString())
-
-                                binding.currentTopShimmer.stopShimmer()
-                                binding.shimmerRecyclerLayout.stopShimmer()
-                                binding.shimmerLinearLayout.stopShimmer()
-                                binding.currentTopShimmer.visibility = View.GONE
-                                binding.shimmerRecyclerLayout.visibility = View.GONE
-                                binding.shimmerLinearLayout.visibility = View.GONE
-                                binding.location.visibility = View.VISIBLE
-                                binding.currentTop.visibility = View.VISIBLE
-                                binding.linearLayout.visibility = View.VISIBLE
-                                binding.recyclerView.visibility = View.VISIBLE
-
-                                binding.humidity.text = formatPercent(it.body()!!.currentConditions.humidity)
-                                binding.wind.text = formatKilometers(it.body()!!.currentConditions.windspeed)
-                                binding.cloudCover.text = formatPercent(it.body()!!.currentConditions.cloudcover)
-
-                                binding.txtAddress.text = betterResolvedAddress(location)
-                                binding.txtDate.text = getFormattedDate()
-                                binding.txtTemp.text = farenheitToDegree(it.body()!!.currentConditions.temp)
-                                binding.imgIcon.setImageResource(getIcon(it.body()!!.currentConditions.icon)!!)
-                                binding.txtCondition.text = it.body()!!.currentConditions.condition
-
-
-                                val adapter = CurrentRecyclerAdapter(it.body()!!.days[0].hours!!)
-                                binding.recyclerView.layoutManager = LinearLayoutManager(
-                                    requireActivity(),
-                                    LinearLayoutManager.HORIZONTAL,
-                                    false
-                                )
-                                binding.recyclerView.adapter = adapter
+                                //Log.i("Response", it.body()!!.currentConditions.toString())
+                                if(it is DataState.Loading && it.data == null){
+                                    startShimmer()
+                                    shimmerVisible()
+                                    layoutsGone()
+                                }else if (it is DataState.Success){
+                                    showWeatherInViews(it, it.data!!)
+                                    stopShimmer()
+                                    shimmerGone()
+                                    layoutsVisible()
+                                    binding.txtAddress.text = betterResolvedAddress(location)
+                                    val adapter = CurrentRecyclerAdapter(it.data.days[0].hours!!)
+                                    binding.recyclerView.layoutManager = LinearLayoutManager(
+                                        requireActivity(),
+                                        LinearLayoutManager.HORIZONTAL,
+                                        false
+                                    )
+                                    binding.recyclerView.adapter = adapter
+                                }else if(it is DataState.Error){
+                                    errorOccurred()
+                                }
+                                else{
+                                    errorOccurred()
+                                }
                             })
-                        }else{}
+                        }else{
+                            checkLocation()
+                        }
                     }
             }
 
@@ -154,9 +146,73 @@ class CurrentWeatherFragment : Fragment() {
         return binding.root
     }
 
+    private fun layoutsVisible() = with(binding) {
+        location.visibility = View.VISIBLE
+        currentTop.visibility = View.VISIBLE
+        linearLayout.visibility = View.VISIBLE
+        recyclerView.visibility = View.VISIBLE
+    }
+
+    private fun layoutsGone() = with(binding) {
+        location.visibility = View.GONE
+        currentTop.visibility = View.GONE
+        linearLayout.visibility = View.GONE
+        recyclerView.visibility = View.GONE
+    }
+
+    private fun shimmerGone() = with(binding) {
+        currentTopShimmer.visibility = View.GONE
+        shimmerRecyclerLayout.visibility = View.GONE
+        shimmerLinearLayout.visibility = View.GONE
+    }
+
+    private fun shimmerVisible() = with(binding) {
+        currentTopShimmer.visibility = View.VISIBLE
+        shimmerRecyclerLayout.visibility = View.VISIBLE
+        shimmerLinearLayout.visibility = View.VISIBLE
+    }
+
+    private fun startShimmer() = with(binding) {
+        currentTopShimmer.startShimmer()
+        shimmerRecyclerLayout.startShimmer()
+        shimmerLinearLayout.startShimmer()
+    }
+
+    private fun stopShimmer() = with(binding) {
+        shimmerRecyclerLayout.stopShimmer()
+        currentTopShimmer.stopShimmer()
+        shimmerLinearLayout.stopShimmer()
+    }
+
+    private fun showWeatherInViews(
+        it: DataState<Weather>,
+        data: Weather
+    ) = with(binding) {
+        humidity.text = formatPercent(it.data!!.currentConditions.humidity)
+        wind.text = formatKilometers(data.currentConditions.windspeed)
+        cloudCover.text = formatPercent(data.currentConditions.cloudcover)
+        txtDate.text = getFormattedDate()
+        txtTemp.text = farenheitToDegree(data.currentConditions.temp)
+        imgIcon.setImageResource(getIcon(data.currentConditions.icon)!!)
+        txtCondition.text = data.currentConditions.condition
+    }
+
     private fun showInContextUI() {
         AlertDialog.Builder(requireContext()).setTitle("Alert")
             .setMessage("AML Weather requires your location in order to get weather")
+            .setCancelable(true)
+            .show()
+    }
+
+    private fun checkLocation() {
+        AlertDialog.Builder(requireContext()).setTitle("Alert")
+            .setMessage("AML Weather could not get location, please check Location is turned on and try again")
+            .setCancelable(true)
+            .show()
+    }
+    private fun errorOccurred() {
+        AlertDialog.Builder(requireContext()).setTitle("Alert")
+            .setMessage("Oops, an error occurred")
             .setCancelable(true)
             .show()
     }
@@ -207,8 +263,7 @@ class CurrentWeatherFragment : Fragment() {
             geocoder.getFromLocation(location.latitude, location.longitude, 1)
         val cityName: String = addresses[0].getAddressLine(0)
         val parts = cityName.split(",")
-        val resolvedAddress = parts[parts.size-3] +", "+ parts[parts.size-1]
-        return resolvedAddress
+        return parts[parts.size - 3] + ", " + parts[parts.size - 1]
     }
 
     override fun onDestroy() {

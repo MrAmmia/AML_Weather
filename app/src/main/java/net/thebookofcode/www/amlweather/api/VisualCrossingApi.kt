@@ -1,5 +1,6 @@
 package net.thebookofcode.www.amlweather.api
 
+import net.thebookofcode.www.amlweather.entity.OtherWeather
 import net.thebookofcode.www.amlweather.entity.Weather
 import net.thebookofcode.www.amlweather.util.Constants.Companion.API_KEY
 import net.thebookofcode.www.amlweather.util.Constants.Companion.CITIES_ELEMENTS
@@ -21,10 +22,10 @@ interface VisualCrossingApi {
     suspend fun getWeatherByLocation(
         @Path("long") longNum: Double,
         @Path("lat") latNum: Double
-    ): Response<Weather>
+    ): Weather
 
     @GET("{town}/$API_KEY$CITIES_INCLUDES$ICONSET$CITIES_ELEMENTS")
     suspend fun getWeatherByTown(
         @Path("town") town: String
-    ): Response<Weather>
+    ): OtherWeather
 }
