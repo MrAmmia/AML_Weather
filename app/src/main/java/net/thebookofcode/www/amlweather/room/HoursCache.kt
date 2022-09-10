@@ -5,6 +5,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "hours")
 data class HoursCache(
+    //@PrimaryKey
     @PrimaryKey
     val time: String,
 
@@ -31,5 +32,5 @@ data class HoursCache(
 
     val icon: String,
 ){
-    lateinit var date:String
+
 }

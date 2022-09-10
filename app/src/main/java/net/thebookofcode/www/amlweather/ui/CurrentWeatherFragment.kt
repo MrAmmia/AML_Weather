@@ -26,6 +26,9 @@ import net.thebookofcode.www.amlweather.adapter.CurrentRecyclerAdapter
 import net.thebookofcode.www.amlweather.databinding.FragmentCurrentWeatherBinding
 import net.thebookofcode.www.amlweather.entity.Weather
 import net.thebookofcode.www.amlweather.model.MainViewModel
+import net.thebookofcode.www.amlweather.room.CurrentConditionsCache
+import net.thebookofcode.www.amlweather.room.DaysCache
+import net.thebookofcode.www.amlweather.room.HoursCache
 import net.thebookofcode.www.amlweather.util.DataState
 import java.text.SimpleDateFormat
 import java.util.*
@@ -36,6 +39,7 @@ class CurrentWeatherFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel: MainViewModel by activityViewModels()
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    lateinit var adapter: CurrentRecyclerAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +52,11 @@ class CurrentWeatherFragment : Fragment() {
     ): View {
         // Inflate the layout for this fragment
         _binding = FragmentCurrentWeatherBinding.inflate(inflater, container, false)
+        binding.recyclerView.layoutManager = LinearLayoutManager(
+            requireActivity(),
+            LinearLayoutManager.HORIZONTAL,
+            false
+        )
         val requestPermissionLauncher =
             registerForActivityResult(
                 ActivityResultContracts.RequestPermission()
@@ -70,6 +79,9 @@ class CurrentWeatherFragment : Fragment() {
                     binding.noLocation.visibility = View.VISIBLE
                 }
             }
+
+            //viewModel.getCurrentConditionsCache()
+
         when {
             ContextCompat.checkSelfPermission(
                 requireContext(),
@@ -83,34 +95,13 @@ class CurrentWeatherFragment : Fragment() {
                     .addOnSuccessListener { location: Location? ->
                         // Got last known location. In some rare situations this can be null.
                         if (location != null) {
-                            //viewModel.getWeatherByLocation(location.longitude, location.latitude)
-                            viewModel.myResponseByLocation.observe(viewLifecycleOwner, Observer {
-                                //Log.i("Response", it.body()!!.currentConditions.toString())
-                                if(it is DataState.Loading && it.data == null){
-                                    startShimmer()
-                                    shimmerVisible()
-                                    layoutsGone()
-                                }else if (it is DataState.Success){
-                                    showWeatherInViews(it, it.data!!)
-                                    stopShimmer()
-                                    shimmerGone()
-                                    layoutsVisible()
-                                    binding.txtAddress.text = betterResolvedAddress(location)
-                                    val adapter = CurrentRecyclerAdapter(it.data.days[0].hours!!)
-                                    binding.recyclerView.layoutManager = LinearLayoutManager(
-                                        requireActivity(),
-                                        LinearLayoutManager.HORIZONTAL,
-                                        false
-                                    )
-                                    binding.recyclerView.adapter = adapter
-                                }else if(it is DataState.Error){
-                                    errorOccurred()
-                                }
-                                else{
-                                    errorOccurred()
-                                }
-                            })
-                        }else{
+                            viewModel.initiate(location.longitude, location.latitude)
+                            viewModel.getCurrentConditions(location.longitude, location.latitude)
+                            viewModel.getHours(location.longitude, location.latitude)
+                            binding.swipeRefresh.setOnRefreshListener {
+                                viewModel.initiate(location.longitude, location.latitude)
+                            }
+                        } else {
                             checkLocation()
                         }
                     }
@@ -133,6 +124,38 @@ class CurrentWeatherFragment : Fragment() {
                 )
             }
         }
+        viewModel.currentCondition.observe(viewLifecycleOwner, Observer {
+           when(it){
+               is DataState.Loading -> {
+                   currentConditionsLoading()
+               }
+               is DataState.Error -> {
+                   currentConditionsLoading()
+                   errorOccurred(it.error!!)
+               }
+               is DataState.Success -> {
+                   showCurrentConditionInViews(it.data!!)
+                   currentConditionsLoaded()
+               }
+           }
+        })
+
+        viewModel.hours.observe(viewLifecycleOwner, Observer {
+            when (it) {
+                is DataState.Loading -> {
+                    hoursLoading()
+                }
+                is DataState.Error -> {
+                    hoursLoading()
+                    errorOccurred(it.error!!)
+                }
+                is DataState.Success -> {
+                    showHoursIViews(it.data!!)
+                    hoursLoaded()
+                }
+            }
+        })
+
         binding.addLocation.setOnClickListener {
             requestPermissionLauncher.launch(
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -143,7 +166,38 @@ class CurrentWeatherFragment : Fragment() {
                 Manifest.permission.ACCESS_FINE_LOCATION
             )
         }
+
         return binding.root
+    }
+
+    private fun hoursLoading() {
+        binding.shimmerRecyclerLayout.startShimmer()
+        binding.shimmerRecyclerLayout.visibility = View.VISIBLE
+        binding.recyclerView.visibility = View.GONE
+    }
+
+    private fun hoursLoaded() {
+        binding.shimmerRecyclerLayout.stopShimmer()
+        binding.shimmerRecyclerLayout.visibility = View.GONE
+        binding.recyclerView.visibility = View.VISIBLE
+    }
+
+    private fun currentConditionsLoading() = with(binding){
+        currentTopShimmer.visibility = View.VISIBLE
+        currentTop.visibility = View.GONE
+        shimmerLinearLayout.visibility = View.VISIBLE
+        linearLayout.visibility = View.GONE
+        currentTopShimmer.startShimmer()
+        shimmerLinearLayout.startShimmer()
+    }
+
+    private fun currentConditionsLoaded() = with(binding){
+        currentTopShimmer.visibility = View.GONE
+        currentTop.visibility = View.VISIBLE
+        shimmerLinearLayout.visibility = View.GONE
+        linearLayout.visibility = View.VISIBLE
+        currentTopShimmer.stopShimmer()
+        shimmerLinearLayout.stopShimmer()
     }
 
     private fun layoutsVisible() = with(binding) {
@@ -184,17 +238,22 @@ class CurrentWeatherFragment : Fragment() {
         shimmerLinearLayout.stopShimmer()
     }
 
-    private fun showWeatherInViews(
-        it: DataState<Weather>,
-        data: Weather
+    private fun showCurrentConditionInViews(
+        data: CurrentConditionsCache
     ) = with(binding) {
-        humidity.text = formatPercent(it.data!!.currentConditions.humidity)
-        wind.text = formatKilometers(data.currentConditions.windspeed)
-        cloudCover.text = formatPercent(data.currentConditions.cloudcover)
+        humidity.text = formatPercent(data.humidity)
+        wind.text = formatKilometers(data.windspeed)
+        cloudCover.text = formatPercent(data.cloudcover)
         txtDate.text = getFormattedDate()
-        txtTemp.text = farenheitToDegree(data.currentConditions.temp)
-        imgIcon.setImageResource(getIcon(data.currentConditions.icon)!!)
-        txtCondition.text = data.currentConditions.condition
+        txtTemp.text = farenheitToDegree(data.temp)
+        txtAddress.text = data.town
+        imgIcon.setImageResource(getIcon(data.icon)!!)
+        txtCondition.text = data.condition
+    }
+
+    private fun showHoursIViews(data: List<HoursCache>) {
+        adapter = CurrentRecyclerAdapter(data)
+        binding.recyclerView.adapter = adapter
     }
 
     private fun showInContextUI() {
@@ -210,9 +269,10 @@ class CurrentWeatherFragment : Fragment() {
             .setCancelable(true)
             .show()
     }
-    private fun errorOccurred() {
+
+    private fun errorOccurred(e:Throwable) {
         AlertDialog.Builder(requireContext()).setTitle("Alert")
-            .setMessage("Oops, an error occurred")
+            .setMessage("Oops, an error occurred\n${e.message}")
             .setCancelable(true)
             .show()
     }
@@ -222,8 +282,8 @@ class CurrentWeatherFragment : Fragment() {
         return doubleTemp.toInt().toString() + "\u00b0"
     }
 
-    fun getFormattedDate():String{
-        val formattedDate = SimpleDateFormat("dd,MMMM",Locale.getDefault()).format(Date())
+    fun getFormattedDate(): String {
+        val formattedDate = SimpleDateFormat("dd,MMMM", Locale.getDefault()).format(Date())
         return "Today $formattedDate"
     }
 
@@ -248,11 +308,11 @@ class CurrentWeatherFragment : Fragment() {
         return iconMap[icon]
     }
 
-    fun formatPercent(item:Double):String{
+    fun formatPercent(item: Double): String {
         return item.toInt().toString() + "%"
     }
 
-    fun formatKilometers(item:Double):String{
+    fun formatKilometers(item: Double): String {
         return item.toInt().toString() + "Km/h"
     }
 

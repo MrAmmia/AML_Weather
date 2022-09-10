@@ -5,33 +5,42 @@ import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 
 data class OtherWeather(
-    @SerializedName("latitude")
-    val latitude: Double,
+    @SerializedName("datetime")
+    val datetime: String,
 
-    @SerializedName("longitude")
-    val longitude: Double,
+    @SerializedName("temp")
+    val temp: Double,
 
-    @SerializedName("resolvedAddress")
-    val resolvedAddress: String,
+    @SerializedName("feelslike")
+    val feelslike: Double,
 
-    @SerializedName("address")
-    val address: String,
+    @SerializedName("humidity")
+    val humidity: Double,
 
-    @SerializedName("description")
-    val description: String,
+    @SerializedName("precip")
+    val precip: Double,
+
+    @SerializedName("snow")
+    val snow: Double,
+
+    @SerializedName("snowdepth")
+    val snowdepth: Double,
 
     @SerializedName("conditions")
     val condition: String,
 
+    @SerializedName("windspeed")
+    val windspeed: Double,
 
-    @SerializedName("timezone")
-    val timezone: String,
+    @SerializedName("winddir")
+    val winddir: Double,
 
-    @SerializedName("tzoffset")
-    val tzoffset: Double,
+    @SerializedName("cloudcover")
+    val cloudcover: Double,
 
-    @SerializedName("currentConditions")
-    val currentConditions: CurrentConditions
-) {
-    var town: String? = null
+    @SerializedName("icon")
+    val icon: String,
+
+    ){
+    var town:String = ""
 }

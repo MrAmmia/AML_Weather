@@ -6,17 +6,18 @@ import androidx.recyclerview.widget.RecyclerView
 import net.thebookofcode.www.amlweather.R
 import net.thebookofcode.www.amlweather.databinding.FutureListLayoutBinding
 import net.thebookofcode.www.amlweather.entity.Days
+import net.thebookofcode.www.amlweather.room.DaysCache
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.HashMap
 
-class FutureRecyclerAdapter(val days:List<Days>): RecyclerView.Adapter<FutureRecyclerAdapter.ViewHolder>() {
+class FutureRecyclerAdapter(val days:List<DaysCache>): RecyclerView.Adapter<FutureRecyclerAdapter.ViewHolder>() {
 
     inner class ViewHolder(private val itemBinding: FutureListLayoutBinding): RecyclerView.ViewHolder(itemBinding.root){
-        fun bind(day: Days){
+        fun bind(day: DaysCache){
             itemBinding.icon.setImageResource(getIcon(day.icon)!!)
             itemBinding.temp.text = farenheitToDegree(day.temp)
-            itemBinding.day.text = getFormattedDate(day.datetime)
+            itemBinding.day.text = getFormattedDate(day.date)
             itemBinding.description.text = day.icon
         }
     }

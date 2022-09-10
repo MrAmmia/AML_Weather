@@ -7,9 +7,6 @@ import net.thebookofcode.www.amlweather.entity.CurrentConditions
 
 @Entity(tableName = "others")
 data class OtherWeatherCache(
-    @PrimaryKey
-    val town: String,
-
     @SerializedName("datetime")
     val datetime: String,
 
@@ -46,4 +43,7 @@ data class OtherWeatherCache(
     @SerializedName("icon")
     val icon: String
 
-)
+){
+    @PrimaryKey
+    var town:String = ""
+}

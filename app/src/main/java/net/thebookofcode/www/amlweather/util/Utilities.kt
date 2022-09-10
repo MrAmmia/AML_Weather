@@ -3,16 +3,35 @@ package net.thebookofcode.www.amlweather.util
 import net.thebookofcode.www.amlweather.entity.CurrentConditions
 import net.thebookofcode.www.amlweather.entity.Days
 import net.thebookofcode.www.amlweather.entity.Hours
+import net.thebookofcode.www.amlweather.entity.OtherWeather
 import net.thebookofcode.www.amlweather.room.CurrentConditionsCache
 import net.thebookofcode.www.amlweather.room.DaysCache
 import net.thebookofcode.www.amlweather.room.HoursCache
+import net.thebookofcode.www.amlweather.room.OtherWeatherCache
 
 class Utilities {
     companion object{
-        fun mapCurrentConditionToCache(it: CurrentConditions): CurrentConditionsCache {
-            return CurrentConditionsCache(it.datetime, it.temp,it.feelslike, it.humidity, it.precip,
+        fun mapCurrentConditionToCache(it: CurrentConditions,town:String): CurrentConditionsCache {
+            val cache =CurrentConditionsCache(it.datetime, it.temp,it.feelslike, it.humidity, it.precip,
                 it.snow, it.snowdepth, it.condition,it.windspeed,it.winddir,it.cloudcover,it.icon)
+            cache.town = town
+            return cache
         }
+
+        fun mapOtherCurrentConditionToCache(it: CurrentConditions,town:String): OtherWeatherCache {
+            val cache =OtherWeatherCache(it.datetime, it.temp,it.feelslike, it.humidity, it.precip,
+                it.snow, it.snowdepth, it.condition,it.windspeed,it.winddir,it.cloudcover,it.icon)
+            cache.town = town
+            return cache
+        }
+
+        /*fun mapOtherCurrentConditionsToCache(weathers: List<CurrentConditions>): List<OtherWeatherCache> {
+            val arrayToReturn = arrayListOf<OtherWeatherCache>()
+            for (weather in weathers){
+                arrayToReturn.add(mapOtherCurrentConditionToCache(weather,weather.town))
+            }
+            return arrayToReturn
+        }*/
 
         fun mapDaysToCache(days: List<Days>):List<DaysCache>{
             val arrayToReturn = arrayListOf<DaysCache>()

@@ -8,18 +8,19 @@ import net.thebookofcode.www.amlweather.databinding.OtherCitiesListLayoutBinding
 import net.thebookofcode.www.amlweather.entity.OtherWeather
 import net.thebookofcode.www.amlweather.entity.Weather
 import net.thebookofcode.www.amlweather.recyclerIterface.ListItemListener
+import net.thebookofcode.www.amlweather.room.OtherWeatherCache
 import retrofit2.Response
 
 class OtherCitiesRecyclerAdapter():RecyclerView.Adapter<OtherCitiesRecyclerAdapter.ViewHolder>() {
-    private var mSource =  ArrayList<OtherWeather>()
     private var listener: ListItemListener? = null
+    private var mSource = ArrayList<OtherWeatherCache>()
 
     inner class ViewHolder(private val itemBinding:OtherCitiesListLayoutBinding):RecyclerView.ViewHolder(itemBinding.root){
-        fun bind(weather: OtherWeather){
+        fun bind(weather: OtherWeatherCache){
             //itemBinding.icon
-            itemBinding.city.text = weather.address
-            itemBinding.temp.text = farenheitToDegree(weather.currentConditions.temp)
-            itemBinding.icon.setImageResource(getIcon(weather.currentConditions.icon)!!)
+            itemBinding.city.text = weather.town
+            itemBinding.temp.text = farenheitToDegree(weather.temp)
+            itemBinding.icon.setImageResource(getIcon(weather.icon)!!)
         }
     }
 
@@ -31,11 +32,11 @@ class OtherCitiesRecyclerAdapter():RecyclerView.Adapter<OtherCitiesRecyclerAdapt
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val currentWeather = mSource[position]
         holder.bind(currentWeather)
-        holder.itemView.setOnClickListener {
+        /*holder.itemView.setOnClickListener {
             if (listener != null && position != RecyclerView.NO_POSITION) {
                 listener!!.onItemClick(currentWeather)
             }
-        }
+        }*/
     }
 
     override fun getItemCount(): Int {
@@ -67,15 +68,15 @@ class OtherCitiesRecyclerAdapter():RecyclerView.Adapter<OtherCitiesRecyclerAdapt
         return iconMap[icon]
     }
 
-    /*fun setWeather(words: List<Response<Weather>>?) {
-        this.mSource = words as ArrayList<Response<Weather>>
+    fun setWeather(words: List<OtherWeatherCache>?) {
+        this.mSource = words as ArrayList<OtherWeatherCache>
         notifyDataSetChanged()
-    }*/
+    }
 
-    fun addWeather(weather: OtherWeather){
+    /*fun addWeather(weather: List<OtherWeatherCache>){
       mSource.add(weather)
       notifyDataSetChanged()
-    }
+    }*/
 
     fun setOnItemClick(listItemListener: ListItemListener?) {
         this.listener = listItemListener

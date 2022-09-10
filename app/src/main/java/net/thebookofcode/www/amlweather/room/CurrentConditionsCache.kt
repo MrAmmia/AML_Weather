@@ -6,7 +6,6 @@ import com.google.gson.annotations.SerializedName
 
 @Entity(tableName = "currentWeather")
 data class CurrentConditionsCache(
-
     @SerializedName("datetime")
     val datetime: String,
 
@@ -41,10 +40,10 @@ data class CurrentConditionsCache(
     val cloudcover: Double,
 
     @SerializedName("icon")
-    val icon: String
+    val icon: String,
 
 ){
     @PrimaryKey
-    lateinit var town: String
+    var town:String = ""
 }
 

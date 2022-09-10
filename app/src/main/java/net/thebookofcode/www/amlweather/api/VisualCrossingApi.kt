@@ -27,5 +27,5 @@ interface VisualCrossingApi {
     @GET("{town}/$API_KEY$CITIES_INCLUDES$ICONSET$CITIES_ELEMENTS")
     suspend fun getWeatherByTown(
         @Path("town") town: String
-    ): OtherWeather
+    ): Weather
 }
