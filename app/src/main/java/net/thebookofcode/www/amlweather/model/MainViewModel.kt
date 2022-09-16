@@ -38,28 +38,6 @@ class MainViewModel
     val towns = arrayListOf<String>()
 
 
-    /*fun getOtherCitiesWeather() {
-        viewModelScope.launch {
-            towns.add("London,Uk")
-            towns.add("Berlin,Germany")
-            towns.add("Madrid,Spain")
-            towns.add("Cairo,Egypt")
-            towns.add("Dhaka,Bangladesh")
-            towns.add("Bogotta,Colombia")
-            towns.add("Paris,France")
-            towns.add("Johannesburg,South Africa")
-            towns.add("Lagos,Nigeria")
-            towns.add("Lisbon,Portugal")
-            for (town: String in towns) {
-                val response = repository.getWeatherByTown(town).asLiveData()
-                //otherCitiesList.add(response)
-            }
-
-            //myResponseOtherCitiesWeather.postValue(otherCitiesList)
-        }
-
-    }*/
-
     //Use this method to refresh
     fun initiate(longNum: Double, latNum: Double) {
         towns.add("London,Uk")
