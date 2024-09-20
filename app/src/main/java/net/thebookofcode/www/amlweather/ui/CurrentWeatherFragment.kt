@@ -7,7 +7,6 @@ import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,21 +14,18 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import dagger.hilt.android.AndroidEntryPoint
 import net.thebookofcode.www.amlweather.R
-import net.thebookofcode.www.amlweather.adapter.CurrentRecyclerAdapter
+import net.thebookofcode.www.amlweather.logic.adapter.CurrentRecyclerAdapter
 import net.thebookofcode.www.amlweather.databinding.FragmentCurrentWeatherBinding
-import net.thebookofcode.www.amlweather.entity.Weather
-import net.thebookofcode.www.amlweather.model.MainViewModel
-import net.thebookofcode.www.amlweather.room.CurrentConditionsCache
-import net.thebookofcode.www.amlweather.room.DaysCache
-import net.thebookofcode.www.amlweather.room.HoursCache
-import net.thebookofcode.www.amlweather.util.DataState
+import net.thebookofcode.www.amlweather.logic.model.MainViewModel
+import net.thebookofcode.www.amlweather.data.local.room.entities.CurrentConditionsCache
+import net.thebookofcode.www.amlweather.data.local.room.entities.HoursCache
+import net.thebookofcode.www.amlweather.logic.util.Resource
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -125,33 +121,37 @@ class CurrentWeatherFragment : Fragment() {
             }
         }
         viewModel.currentCondition.observe(viewLifecycleOwner, Observer {
-           when(it){
-               is DataState.Loading -> {
-                   currentConditionsLoading()
-               }
-               is DataState.Error -> {
-                   currentConditionsLoading()
-                   errorOccurred(it.error!!)
-               }
-               is DataState.Success -> {
-                   showCurrentConditionInViews(it.data!!)
-                   currentConditionsLoaded()
+           it.getContentIfNotHandled()?.let { result ->
+               when(result){
+                   is Resource.Loading -> {
+                       currentConditionsLoading()
+                   }
+                   is Resource.Error -> {
+                       currentConditionsLoading()
+                       errorOccurred(result.error!!)
+                   }
+                   is Resource.Success -> {
+                       showCurrentConditionInViews(result.data!!)
+                       currentConditionsLoaded()
+                   }
                }
            }
         })
 
         viewModel.hours.observe(viewLifecycleOwner, Observer {
-            when (it) {
-                is DataState.Loading -> {
-                    hoursLoading()
-                }
-                is DataState.Error -> {
-                    hoursLoading()
-                    errorOccurred(it.error!!)
-                }
-                is DataState.Success -> {
-                    showHoursIViews(it.data!!)
-                    hoursLoaded()
+            it.getContentIfNotHandled()?.let { result ->
+                when (result) {
+                    is Resource.Loading -> {
+                        hoursLoading()
+                    }
+                    is Resource.Error -> {
+                        hoursLoading()
+                        errorOccurred(result.error!!)
+                    }
+                    is Resource.Success -> {
+                        showHoursIViews(result.data!!)
+                        hoursLoaded()
+                    }
                 }
             }
         })
@@ -270,9 +270,9 @@ class CurrentWeatherFragment : Fragment() {
             .show()
     }
 
-    private fun errorOccurred(e:Throwable) {
+    private fun errorOccurred(message:String) {
         AlertDialog.Builder(requireContext()).setTitle("Alert")
-            .setMessage("Oops, an error occurred\n${e.message}")
+            .setMessage("Oops, an error occurred\n${message}")
             .setCancelable(true)
             .show()
     }
@@ -318,9 +318,9 @@ class CurrentWeatherFragment : Fragment() {
 
     fun betterResolvedAddress(location: Location): String {
         // work on this, Should be able to get it from location parameters tho
-        val geocoder = Geocoder(context, Locale.getDefault())
+        val geocoder = context?.let { Geocoder(it, Locale.getDefault()) }
         val addresses: List<Address> =
-            geocoder.getFromLocation(location.latitude, location.longitude, 1)
+            geocoder?.getFromLocation(location.latitude, location.longitude, 1)!!
         val cityName: String = addresses[0].getAddressLine(0)
         val parts = cityName.split(",")
         return parts[parts.size - 3] + ", " + parts[parts.size - 1]

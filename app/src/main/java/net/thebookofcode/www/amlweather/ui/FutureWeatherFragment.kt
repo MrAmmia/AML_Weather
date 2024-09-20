@@ -17,12 +17,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import net.thebookofcode.www.amlweather.R
-import net.thebookofcode.www.amlweather.adapter.FutureRecyclerAdapter
+import net.thebookofcode.www.amlweather.logic.adapter.FutureRecyclerAdapter
 import net.thebookofcode.www.amlweather.databinding.FragmentFutureWeatherBinding
-import net.thebookofcode.www.amlweather.entity.Weather
-import net.thebookofcode.www.amlweather.model.MainViewModel
-import net.thebookofcode.www.amlweather.room.DaysCache
-import net.thebookofcode.www.amlweather.util.DataState
+import net.thebookofcode.www.amlweather.logic.model.MainViewModel
+import net.thebookofcode.www.amlweather.data.local.room.entities.DaysCache
+import net.thebookofcode.www.amlweather.logic.util.Resource
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.HashMap
@@ -105,23 +104,25 @@ class FutureWeatherFragment : Fragment() {
         }
 
         viewModel.days.observe(viewLifecycleOwner, Observer {
-            when (it) {
-                is DataState.Loading -> {
-                    startShimmer()
-                    shimmerVisible()
-                    layoutsGone()
-                }
-                is DataState.Error -> {
-                    startShimmer()
-                    shimmerVisible()
-                    layoutsGone()
-                    errorOccurred()
-                }
-                is DataState.Success -> {
-                    showDaysInViews(it.data!!)
-                    stopShimmer()
-                    shimmerGone()
-                    layoutsVisible()
+            it.getContentIfNotHandled()?.let { result ->
+                when (result) {
+                    is Resource.Loading -> {
+                        startShimmer()
+                        shimmerVisible()
+                        layoutsGone()
+                    }
+                    is Resource.Error -> {
+                        startShimmer()
+                        shimmerVisible()
+                        layoutsGone()
+                        errorOccurred()
+                    }
+                    is Resource.Success -> {
+                        showDaysInViews(result.data!!)
+                        stopShimmer()
+                        shimmerGone()
+                        layoutsVisible()
+                    }
                 }
             }
         })

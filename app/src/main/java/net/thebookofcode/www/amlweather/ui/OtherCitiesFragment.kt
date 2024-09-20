@@ -6,20 +6,14 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.asLiveData
 import androidx.recyclerview.widget.LinearLayoutManager
-import net.thebookofcode.www.amlweather.adapter.OtherCitiesRecyclerAdapter
+import net.thebookofcode.www.amlweather.logic.adapter.OtherCitiesRecyclerAdapter
 import net.thebookofcode.www.amlweather.databinding.FragmentOtherCitiesBinding
-import net.thebookofcode.www.amlweather.entity.OtherWeather
-import net.thebookofcode.www.amlweather.entity.Weather
-import net.thebookofcode.www.amlweather.model.MainViewModel
-import net.thebookofcode.www.amlweather.recyclerIterface.ListItemListener
-import net.thebookofcode.www.amlweather.util.DataState
+import net.thebookofcode.www.amlweather.logic.model.MainViewModel
+import net.thebookofcode.www.amlweather.logic.util.Resource
 
 class OtherCitiesFragment : Fragment() {
     private var _binding:FragmentOtherCitiesBinding? = null
@@ -41,21 +35,23 @@ class OtherCitiesFragment : Fragment() {
         binding.recyclerView.adapter = adapter
         viewModel.getOthers(towns)
         viewModel.other.observe(viewLifecycleOwner, Observer {
-            when(it){
-                is DataState.Success -> {
-                    adapter.setWeather(it.data!!)
-                    val size = adapter.itemCount
-                    Log.d("Size",size.toString())
+            it.getContentIfNotHandled()?.let { result ->
+                when(result){
+                    is Resource.Success -> {
+                        adapter.setWeather(result.data!!)
+                        val size = adapter.itemCount
+                        Log.d("Size",size.toString())
 
-                    listLoaded()
-                }
-                is DataState.Loading -> {
-                    listLoading()
-                    binding.shimmer.startShimmer()
-                }
-                is DataState.Error -> {
-                    listLoading()
-                    errorOccurred(it.error!!)
+                        listLoaded()
+                    }
+                    is Resource.Loading -> {
+                        listLoading()
+                        binding.shimmer.startShimmer()
+                    }
+                    is Resource.Error -> {
+                        listLoading()
+                        errorOccurred(result.error!!)
+                    }
                 }
             }
 
@@ -96,9 +92,9 @@ class OtherCitiesFragment : Fragment() {
         binding.shimmer.startShimmer()
     }
 
-    private fun errorOccurred(e:Throwable) {
+    private fun errorOccurred(message:String) {
         AlertDialog.Builder(requireContext()).setTitle("Alert")
-            .setMessage("Oops, an error occurred\n${e.message}")
+            .setMessage("Oops, an error occurred\n${message}")
             .setCancelable(true)
             .show()
     }
