@@ -22,6 +22,14 @@ import net.thebookofcode.www.amlweather.databinding.FragmentFutureWeatherBinding
 import net.thebookofcode.www.amlweather.logic.model.MainViewModel
 import net.thebookofcode.www.amlweather.data.local.room.entities.DaysCache
 import net.thebookofcode.www.amlweather.logic.util.Resource
+import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.checkLocation
+import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.errorOccurred
+import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.farenheitToDegree
+import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.formatKilometers
+import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.formatPercent
+import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.getFormattedDate
+import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.getIcon
+import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.showInContextUI
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.HashMap
@@ -62,7 +70,7 @@ class FutureWeatherFragment : Fragment() {
                     // same time, respect the user's decision. Don't link to system
                     // settings in an effort to convince the user to change their
                     // decision.
-                    showInContextUI()
+                    showInContextUI(requireContext())
                 }
             }
         when {
@@ -82,7 +90,7 @@ class FutureWeatherFragment : Fragment() {
                             }
 
                         } else {
-                            checkLocation()
+                            checkLocation(requireContext())
                         }
                     }
             }
@@ -92,7 +100,7 @@ class FutureWeatherFragment : Fragment() {
                 // permission for a specific feature to behave as expected. In this UI,
                 // include a "cancel" or "no thanks" button that allows the user to
                 // continue using your app without granting the permission.
-                showInContextUI()
+                showInContextUI(requireContext())
             }
             else -> {
                 // You can directly ask for the permission.
@@ -115,7 +123,7 @@ class FutureWeatherFragment : Fragment() {
                         startShimmer()
                         shimmerVisible()
                         layoutsGone()
-                        errorOccurred()
+                        errorOccurred(requireContext(),result.error!!)
                     }
                     is Resource.Success -> {
                         showDaysInViews(result.data!!)
@@ -173,69 +181,6 @@ class FutureWeatherFragment : Fragment() {
     private fun stopShimmer() {
         binding.shimmerCardLayout.stopShimmer()
         binding.shimmerRecyclerLayout.stopShimmer()
-    }
-
-    private fun showInContextUI() {
-        AlertDialog.Builder(requireContext()).setTitle("Alert")
-            .setMessage("AML Weather requires your location in order to get weather")
-            .setCancelable(true)
-            .show()
-    }
-
-    fun farenheitToDegree(temp: Double): String {
-        val doubleTemp = ((temp - 32) * 5) / 9
-        return doubleTemp.toInt().toString() + "\u00b0"
-    }
-
-    fun getIcon(icon: String): Int? {
-        val iconMap = HashMap<String, Int>()
-        iconMap["snow"] = R.drawable.snow
-        iconMap["rain"] = R.drawable.rain
-        //iconMap["fog"] = R.drawable.fog
-        iconMap["wind"] = R.drawable.wind
-        iconMap["cloudy"] = R.drawable.cloudy
-        iconMap["partly-cloudy-day"] = R.drawable.partly_covered_day
-        iconMap["partly-cloudy-night"] = R.drawable.partly_covered_night
-        iconMap["clear-day"] = R.drawable.clear_day
-        iconMap["clear-night"] = R.drawable.clear_night
-        iconMap["snow-showers-day"] = R.drawable.snow_showers_day
-        iconMap["snow-showers-night"] = R.drawable.snow_showers_night
-        iconMap["thunder-rain"] = R.drawable.thunder_shower_day
-        iconMap["thunder-showers-day"] = R.drawable.thunder_shower_day
-        iconMap["thunder-showers-night"] = R.drawable.thunder_shower_night
-        iconMap["showers-day"] = R.drawable.showers_day
-        iconMap["showers-night"] = R.drawable.showers_night
-        return iconMap[icon]
-    }
-
-    fun getFormattedDate(date: String): String {
-        var format = SimpleDateFormat("yyyy-MM-dd")
-        val newDate: Date = format.parse(date)
-
-        format = SimpleDateFormat("EEEE, dd MMM")
-        return format.format(newDate)
-    }
-
-    fun formatPercent(item: Double): String {
-        return item.toInt().toString() + "%"
-    }
-
-    fun formatKilometers(item: Double): String {
-        return item.toInt().toString() + "Km/h"
-    }
-
-    private fun checkLocation() {
-        AlertDialog.Builder(requireContext()).setTitle("Alert")
-            .setMessage("AML Weather could not get location, please check Location is turned on and try again")
-            .setCancelable(true)
-            .show()
-    }
-
-    private fun errorOccurred() {
-        AlertDialog.Builder(requireContext()).setTitle("Alert")
-            .setMessage("Oops, an error occurred")
-            .setCancelable(true)
-            .show()
     }
 
     override fun onDestroy() {

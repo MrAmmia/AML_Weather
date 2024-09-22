@@ -1,10 +1,7 @@
 package net.thebookofcode.www.amlweather.ui
 
 import android.Manifest
-import android.app.AlertDialog
 import android.content.pm.PackageManager
-import android.location.Address
-import android.location.Geocoder
 import android.location.Location
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -19,14 +16,21 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import dagger.hilt.android.AndroidEntryPoint
-import net.thebookofcode.www.amlweather.R
-import net.thebookofcode.www.amlweather.logic.adapter.CurrentRecyclerAdapter
-import net.thebookofcode.www.amlweather.databinding.FragmentCurrentWeatherBinding
-import net.thebookofcode.www.amlweather.logic.model.MainViewModel
 import net.thebookofcode.www.amlweather.data.local.room.entities.CurrentConditionsCache
 import net.thebookofcode.www.amlweather.data.local.room.entities.HoursCache
+import net.thebookofcode.www.amlweather.databinding.FragmentCurrentWeatherBinding
+import net.thebookofcode.www.amlweather.logic.adapter.CurrentRecyclerAdapter
+import net.thebookofcode.www.amlweather.logic.model.MainViewModel
 import net.thebookofcode.www.amlweather.logic.util.Resource
-import java.text.SimpleDateFormat
+import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.betterResolvedAddress
+import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.checkLocation
+import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.errorOccurred
+import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.farenheitToDegree
+import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.formatKilometers
+import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.formatPercent
+import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.getFormattedDate
+import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.getIcon
+import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.showInContextUI
 import java.util.*
 
 @AndroidEntryPoint
@@ -70,7 +74,7 @@ class CurrentWeatherFragment : Fragment() {
                     // same time, respect the user's decision. Don't link to system
                     // settings in an effort to convince the user to change their
                     // decision.
-                    showInContextUI()
+                    showInContextUI(requireContext())
                     binding.location.visibility = View.GONE
                     binding.noLocation.visibility = View.VISIBLE
                 }
@@ -94,11 +98,12 @@ class CurrentWeatherFragment : Fragment() {
                             viewModel.initiate(location.longitude, location.latitude)
                             viewModel.getCurrentConditions(location.longitude, location.latitude)
                             viewModel.getHours(location.longitude, location.latitude)
+                            binding.txtAddress.text = betterResolvedAddress(requireContext(), location)
                             binding.swipeRefresh.setOnRefreshListener {
                                 viewModel.initiate(location.longitude, location.latitude)
                             }
                         } else {
-                            checkLocation()
+                            checkLocation(requireContext())
                         }
                     }
             }
@@ -108,7 +113,7 @@ class CurrentWeatherFragment : Fragment() {
                 // permission for a specific feature to behave as expected. In this UI,
                 // include a "cancel" or "no thanks" button that allows the user to
                 // continue using your app without granting the permission.
-                showInContextUI()
+                showInContextUI(requireContext())
                 binding.location.visibility = View.GONE
                 binding.noLocation.visibility = View.VISIBLE
             }
@@ -128,7 +133,7 @@ class CurrentWeatherFragment : Fragment() {
                    }
                    is Resource.Error -> {
                        currentConditionsLoading()
-                       errorOccurred(result.error!!)
+                       errorOccurred(requireContext(),result.error!!)
                    }
                    is Resource.Success -> {
                        showCurrentConditionInViews(result.data!!)
@@ -146,7 +151,7 @@ class CurrentWeatherFragment : Fragment() {
                     }
                     is Resource.Error -> {
                         hoursLoading()
-                        errorOccurred(result.error!!)
+                        errorOccurred(requireContext(),result.error!!)
                     }
                     is Resource.Success -> {
                         showHoursIViews(result.data!!)
@@ -246,7 +251,7 @@ class CurrentWeatherFragment : Fragment() {
         cloudCover.text = formatPercent(data.cloudcover)
         txtDate.text = getFormattedDate()
         txtTemp.text = farenheitToDegree(data.temp)
-        txtAddress.text = data.town
+        //txtAddress.text = data.town
         imgIcon.setImageResource(getIcon(data.icon)!!)
         txtCondition.text = data.condition
     }
@@ -256,75 +261,6 @@ class CurrentWeatherFragment : Fragment() {
         binding.recyclerView.adapter = adapter
     }
 
-    private fun showInContextUI() {
-        AlertDialog.Builder(requireContext()).setTitle("Alert")
-            .setMessage("AML Weather requires your location in order to get weather")
-            .setCancelable(true)
-            .show()
-    }
-
-    private fun checkLocation() {
-        AlertDialog.Builder(requireContext()).setTitle("Alert")
-            .setMessage("AML Weather could not get location, please check Location is turned on and try again")
-            .setCancelable(true)
-            .show()
-    }
-
-    private fun errorOccurred(message:String) {
-        AlertDialog.Builder(requireContext()).setTitle("Alert")
-            .setMessage("Oops, an error occurred\n${message}")
-            .setCancelable(true)
-            .show()
-    }
-
-    fun farenheitToDegree(temp: Double): String {
-        val doubleTemp = ((temp - 32) * 5) / 9
-        return doubleTemp.toInt().toString() + "\u00b0"
-    }
-
-    fun getFormattedDate(): String {
-        val formattedDate = SimpleDateFormat("dd,MMMM", Locale.getDefault()).format(Date())
-        return "Today $formattedDate"
-    }
-
-    fun getIcon(icon: String): Int? {
-        val iconMap = HashMap<String, Int>()
-        iconMap["snow"] = R.drawable.snow
-        iconMap["rain"] = R.drawable.rain
-        //iconMap["fog"] = R.drawable.fog
-        iconMap["wind"] = R.drawable.wind
-        iconMap["cloudy"] = R.drawable.cloudy
-        iconMap["partly-cloudy-day"] = R.drawable.partly_covered_day
-        iconMap["partly-cloudy-night"] = R.drawable.partly_covered_night
-        iconMap["clear-day"] = R.drawable.clear_day
-        iconMap["clear-night"] = R.drawable.clear_night
-        iconMap["snow-showers-day"] = R.drawable.snow_showers_day
-        iconMap["snow-showers-night"] = R.drawable.snow_showers_night
-        iconMap["thunder-rain"] = R.drawable.thunder_shower_day
-        iconMap["thunder-showers-day"] = R.drawable.thunder_shower_day
-        iconMap["thunder-showers-night"] = R.drawable.thunder_shower_night
-        iconMap["showers-day"] = R.drawable.showers_day
-        iconMap["showers-night"] = R.drawable.showers_night
-        return iconMap[icon]
-    }
-
-    fun formatPercent(item: Double): String {
-        return item.toInt().toString() + "%"
-    }
-
-    fun formatKilometers(item: Double): String {
-        return item.toInt().toString() + "Km/h"
-    }
-
-    fun betterResolvedAddress(location: Location): String {
-        // work on this, Should be able to get it from location parameters tho
-        val geocoder = context?.let { Geocoder(it, Locale.getDefault()) }
-        val addresses: List<Address> =
-            geocoder?.getFromLocation(location.latitude, location.longitude, 1)!!
-        val cityName: String = addresses[0].getAddressLine(0)
-        val parts = cityName.split(",")
-        return parts[parts.size - 3] + ", " + parts[parts.size - 1]
-    }
 
     override fun onDestroy() {
         super.onDestroy()
