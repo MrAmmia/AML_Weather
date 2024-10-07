@@ -12,17 +12,17 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import dagger.hilt.android.AndroidEntryPoint
-import net.thebookofcode.www.amlweather.data.local.room.entities.CurrentConditionsCache
-import net.thebookofcode.www.amlweather.data.local.room.entities.HoursCache
+import net.thebookofcode.www.amlweather.data.local.room.entities.CurrentConditionCache
+import net.thebookofcode.www.amlweather.data.local.room.entities.HourCache
 import net.thebookofcode.www.amlweather.databinding.FragmentCurrentWeatherBinding
 import net.thebookofcode.www.amlweather.logic.adapter.CurrentRecyclerAdapter
 import net.thebookofcode.www.amlweather.logic.model.MainViewModel
 import net.thebookofcode.www.amlweather.logic.util.Resource
-import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.betterResolvedAddress
 import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.checkLocation
 import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.errorOccurred
 import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.farenheitToDegree
@@ -31,7 +31,6 @@ import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.formatPercen
 import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.getFormattedDate
 import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.getIcon
 import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.showInContextUI
-import java.util.*
 
 @AndroidEntryPoint
 class CurrentWeatherFragment : Fragment() {
@@ -80,7 +79,7 @@ class CurrentWeatherFragment : Fragment() {
                 }
             }
 
-            //viewModel.getCurrentConditionsCache()
+        //viewModel.getCurrentConditionsCache()
 
         when {
             ContextCompat.checkSelfPermission(
@@ -89,21 +88,29 @@ class CurrentWeatherFragment : Fragment() {
             ) == PackageManager.PERMISSION_GRANTED -> {
                 // You can use the API that requires the permission.
                 startShimmer()
-                //binding.location.visibility = View.VISIBLE
                 binding.noLocation.visibility = View.GONE
                 fusedLocationClient.lastLocation
                     .addOnSuccessListener { location: Location? ->
                         // Got last known location. In some rare situations this can be null.
                         if (location != null) {
-                            viewModel.initiate(location.longitude, location.latitude)
-                            viewModel.getCurrentConditions(location.longitude, location.latitude)
-                            viewModel.getHours(location.longitude, location.latitude)
-                            binding.txtAddress.text = betterResolvedAddress(requireContext(), location)
+                            viewModel.getLiveWeather(location.longitude, location.latitude)
                             binding.swipeRefresh.setOnRefreshListener {
-                                viewModel.initiate(location.longitude, location.latitude)
+                                viewModel.getLiveWeather(location.longitude, location.latitude)
                             }
                         } else {
-                            checkLocation(requireContext())
+                            // location is null, so check if cache is available
+                            viewModel.isWeatherCacheAvailable()
+                                .observe(viewLifecycleOwner, Observer { cacheIsAvailable ->
+                                    if (cacheIsAvailable) {
+                                        viewModel.getCachedWeather()
+                                        binding.swipeRefresh.setOnRefreshListener {
+                                            viewModel.getCachedWeather()
+                                        }
+                                    } else {
+                                        checkLocation(requireContext())
+                                    }
+                                })
+
                         }
                     }
             }
@@ -117,6 +124,7 @@ class CurrentWeatherFragment : Fragment() {
                 binding.location.visibility = View.GONE
                 binding.noLocation.visibility = View.VISIBLE
             }
+
             else -> {
                 // You can directly ask for the permission.
                 // The registered ActivityResultCallback gets the result of this request.
@@ -125,41 +133,32 @@ class CurrentWeatherFragment : Fragment() {
                 )
             }
         }
-        viewModel.currentCondition.observe(viewLifecycleOwner, Observer {
-           it.getContentIfNotHandled()?.let { result ->
-               when(result){
-                   is Resource.Loading -> {
-                       currentConditionsLoading()
-                   }
-                   is Resource.Error -> {
-                       currentConditionsLoading()
-                       errorOccurred(requireContext(),result.error!!)
-                   }
-                   is Resource.Success -> {
-                       showCurrentConditionInViews(result.data!!)
-                       currentConditionsLoaded()
-                   }
-               }
-           }
-        })
 
-        viewModel.hours.observe(viewLifecycleOwner, Observer {
+        viewModel.weather.observe(viewLifecycleOwner, Observer{
             it.getContentIfNotHandled()?.let { result ->
-                when (result) {
+                when(result){
                     is Resource.Loading -> {
+                        currentConditionsLoading()
                         hoursLoading()
                     }
+                    
                     is Resource.Error -> {
+                        currentConditionsLoading()
                         hoursLoading()
-                        errorOccurred(requireContext(),result.error!!)
+                        errorOccurred(requireContext(), result.error!!)
                     }
+
                     is Resource.Success -> {
-                        showHoursIViews(result.data!!)
+                        showCurrentConditionInViews(result.data!!.currentConditionCache)
+                        showHoursIViews(result.data.hourCache)
+                        currentConditionsLoaded()
                         hoursLoaded()
                     }
                 }
+
             }
         })
+
 
         binding.addLocation.setOnClickListener {
             requestPermissionLauncher.launch(
@@ -169,6 +168,12 @@ class CurrentWeatherFragment : Fragment() {
         binding.getLocation.setOnClickListener {
             requestPermissionLauncher.launch(
                 Manifest.permission.ACCESS_FINE_LOCATION
+            )
+        }
+
+        binding.txtNext.setOnClickListener{
+            findNavController().navigate(
+                CurrentWeatherFragmentDirections.actionCurrentWeatherFragmentToFutureWeatherFragment()
             )
         }
 
@@ -187,7 +192,7 @@ class CurrentWeatherFragment : Fragment() {
         binding.recyclerView.visibility = View.VISIBLE
     }
 
-    private fun currentConditionsLoading() = with(binding){
+    private fun currentConditionsLoading() = with(binding) {
         currentTopShimmer.visibility = View.VISIBLE
         currentTop.visibility = View.GONE
         shimmerLinearLayout.visibility = View.VISIBLE
@@ -196,7 +201,7 @@ class CurrentWeatherFragment : Fragment() {
         shimmerLinearLayout.startShimmer()
     }
 
-    private fun currentConditionsLoaded() = with(binding){
+    private fun currentConditionsLoaded() = with(binding) {
         currentTopShimmer.visibility = View.GONE
         currentTop.visibility = View.VISIBLE
         shimmerLinearLayout.visibility = View.GONE
@@ -244,19 +249,19 @@ class CurrentWeatherFragment : Fragment() {
     }
 
     private fun showCurrentConditionInViews(
-        data: CurrentConditionsCache
+        data: CurrentConditionCache
     ) = with(binding) {
         humidity.text = formatPercent(data.humidity)
-        wind.text = formatKilometers(data.windspeed)
-        cloudCover.text = formatPercent(data.cloudcover)
+        wind.text = formatKilometers(data.windSpeed)
+        cloudCover.text = formatPercent(data.cloudCover)
         txtDate.text = getFormattedDate()
         txtTemp.text = farenheitToDegree(data.temp)
-        //txtAddress.text = data.town
+        txtAddress.text = data.town
         imgIcon.setImageResource(getIcon(data.icon)!!)
         txtCondition.text = data.condition
     }
 
-    private fun showHoursIViews(data: List<HoursCache>) {
+    private fun showHoursIViews(data: List<HourCache>) {
         adapter = CurrentRecyclerAdapter(data)
         binding.recyclerView.adapter = adapter
     }

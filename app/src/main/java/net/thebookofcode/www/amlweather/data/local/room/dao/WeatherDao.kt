@@ -4,30 +4,46 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import net.thebookofcode.www.amlweather.data.local.room.entities.CurrentConditionsCache
-import net.thebookofcode.www.amlweather.data.local.room.entities.DaysCache
-import net.thebookofcode.www.amlweather.data.local.room.entities.HoursCache
+import androidx.room.Transaction
+import net.thebookofcode.www.amlweather.data.local.room.entities.CurrentConditionCache
+import net.thebookofcode.www.amlweather.data.local.room.entities.DayCache
+import net.thebookofcode.www.amlweather.data.local.room.entities.HourCache
 import net.thebookofcode.www.amlweather.data.local.room.entities.OtherWeatherCache
+import net.thebookofcode.www.amlweather.data.local.room.entities.WeatherCache
+import net.thebookofcode.www.amlweather.data.local.room.entities.relations.WeatherWithCurrentConditionAndDay
 
 @Dao
 interface WeatherDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertDays(days:List<DaysCache>)
+    suspend fun insertWeather(weather: WeatherCache)
+
+    @Query("DELETE FROM weather")
+    suspend fun deleteAllWeather()
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertDays(days:List<DayCache>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertDay(day:DayCache)
+
+    @Transaction
+    @Query("SELECT * FROM weather")
+    suspend fun getWeather():WeatherWithCurrentConditionAndDay
+
+    @Query("SELECT COUNT(*) FROM weather")
+    suspend fun getWeatherCount():Int
 
     @Query("SELECT * FROM days")
-    suspend fun getDays():List<DaysCache>
+    suspend fun getDays():List<DayCache>
 
     @Query("DELETE FROM days")
     suspend fun deleteAllDays()
 
-    @Query("SELECT COUNT(*) FROM days")
-    suspend fun getDaysCount():Int
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertHours(hours:List<HoursCache>)
+    suspend fun insertHours(hours:List<HourCache>)
 
     @Query("SELECT * FROM hours")
-    suspend fun getHours():List<HoursCache>
+    suspend fun getHours():List<HourCache>
 
     @Query("DELETE FROM hours")
     suspend fun deleteAllHours()
@@ -36,10 +52,13 @@ interface WeatherDao {
     suspend fun getHoursCount():Int
 
     @Query("SELECT * FROM currentWeather LIMIT 1")
-    suspend fun getCurrentConditionDefaultLocation(): CurrentConditionsCache
+    suspend fun getCurrentConditionDefaultLocation(): CurrentConditionCache
+
+    @Query("UPDATE currentWeather SET town = :address")
+    suspend fun updateCurrentConditions(address: String)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCurrentCondition(weather: CurrentConditionsCache)
+    suspend fun insertCurrentCondition(weather: CurrentConditionCache)
 
     @Query("DELETE FROM currentWeather")
     suspend fun deleteCurrentCondition()

@@ -52,7 +52,7 @@ class Utilities {
             return format.format(newDate)
         }
 
-        fun getIcon(icon: String): Int? {
+        fun getIcon(icon: String): Int {
             val iconMap = HashMap<String, Int>()
             iconMap["snow"] = R.drawable.snow
             iconMap["rain"] = R.drawable.rain
@@ -70,7 +70,7 @@ class Utilities {
             iconMap["thunder-showers-night"] = R.drawable.thunder_shower_night
             iconMap["showers-day"] = R.drawable.showers_day
             iconMap["showers-night"] = R.drawable.showers_night
-            return iconMap[icon]
+            return iconMap[icon] ?: R.drawable.ic_no_icon
         }
 
         fun formatPercent(item: Double): String {

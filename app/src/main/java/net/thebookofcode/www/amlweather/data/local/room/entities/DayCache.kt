@@ -1,12 +1,23 @@
 package net.thebookofcode.www.amlweather.data.local.room.entities
 
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "days")
-data class DaysCache(
-    @PrimaryKey
+@Entity(
+    tableName = "days",
+    foreignKeys = [ForeignKey(
+        entity = WeatherCache::class,
+        parentColumns = ["weatherId"],
+        childColumns = ["weatherId"],
+        onDelete = ForeignKey.CASCADE
+    )]
+)
+data class DayCache(
+    @PrimaryKey(autoGenerate = false)
     val date: String,
+
+    val weatherId:Long,
 
     val tempmax: Double,
 
@@ -32,4 +43,5 @@ data class DaysCache(
 
     val cloudcover: Double,
 
+    //val hours: List<HourCache>
 )

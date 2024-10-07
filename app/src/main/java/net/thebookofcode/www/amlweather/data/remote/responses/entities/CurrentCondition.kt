@@ -2,15 +2,15 @@ package net.thebookofcode.www.amlweather.data.remote.responses.entities
 
 import com.google.gson.annotations.SerializedName
 
-data class CurrentConditions(
+data class CurrentCondition(
     @SerializedName("datetime")
     val datetime: String,
 
     @SerializedName("temp")
     val temp: Double,
 
-    @SerializedName("feelslike")
-    val feelslike: Double,
+    @SerializedName("feelsLike")
+    val feelsLike: Double,
 
     @SerializedName("humidity")
     val humidity: Double,
@@ -21,23 +21,23 @@ data class CurrentConditions(
     @SerializedName("snow")
     val snow: Double,
 
-    @SerializedName("snowdepth")
-    val snowdepth: Double,
+    @SerializedName("snowDepth")
+    val snowDepth: Double,
 
     @SerializedName("conditions")
     val condition: String,
 
-    @SerializedName("preciptype")
-    val preciptype: Object,
+    @SerializedName("precipType")
+    val precipType: Object,
 
-    @SerializedName("windspeed")
-    val windspeed: Double,
+    @SerializedName("windSpeed")
+    val windSpeed: Double,
 
-    @SerializedName("winddir")
-    val winddir: Double,
+    @SerializedName("windDir")
+    val windDir: Double,
 
-    @SerializedName("cloudcover")
-    val cloudcover: Double,
+    @SerializedName("cloudCover")
+    val cloudCover: Double,
 
     @SerializedName("icon")
     val icon: String

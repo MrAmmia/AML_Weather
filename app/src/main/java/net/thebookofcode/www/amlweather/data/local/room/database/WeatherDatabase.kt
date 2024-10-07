@@ -3,13 +3,14 @@ package net.thebookofcode.www.amlweather.data.local.room.database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import net.thebookofcode.www.amlweather.data.local.room.dao.WeatherDao
-import net.thebookofcode.www.amlweather.data.local.room.entities.CurrentConditionsCache
-import net.thebookofcode.www.amlweather.data.local.room.entities.DaysCache
-import net.thebookofcode.www.amlweather.data.local.room.entities.HoursCache
+import net.thebookofcode.www.amlweather.data.local.room.entities.CurrentConditionCache
+import net.thebookofcode.www.amlweather.data.local.room.entities.DayCache
+import net.thebookofcode.www.amlweather.data.local.room.entities.HourCache
 import net.thebookofcode.www.amlweather.data.local.room.entities.OtherWeatherCache
+import net.thebookofcode.www.amlweather.data.local.room.entities.WeatherCache
 
-@Database(entities = [CurrentConditionsCache::class, HoursCache::class,
-    DaysCache::class, OtherWeatherCache::class], version = 1)
+@Database(entities = [CurrentConditionCache::class, HourCache::class,
+    DayCache::class, OtherWeatherCache::class, WeatherCache::class], version = 2)
 abstract class WeatherDatabase:RoomDatabase() {
     abstract fun weatherDao(): WeatherDao
 

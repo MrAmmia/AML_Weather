@@ -3,7 +3,12 @@ package net.thebookofcode.www.amlweather.ui
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.navigation.NavController
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.setupWithNavController
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
+import net.thebookofcode.www.amlweather.R
 import net.thebookofcode.www.amlweather.logic.adapter.ViewPagerAdapter
 import net.thebookofcode.www.amlweather.databinding.ActivityMainBinding
 import net.thebookofcode.www.amlweather.logic.util.ConnectivityObserver
@@ -39,17 +44,24 @@ class MainActivity : AppCompatActivity() {
             }
         }*/
 
-        val fragmentList = arrayListOf<Fragment>(
-            CurrentWeatherFragment(),
-            FutureWeatherFragment(),
-            OtherCitiesFragment()
-        )
-        val adapter = ViewPagerAdapter(
-            fragmentList,
-            this.supportFragmentManager,
-            lifecycle
-        )
-        binding.viewPager2.adapter = adapter
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.navHostFragment) as NavHostFragment
+        val navController: NavController = navHostFragment.navController
+
+        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        bottomNavigationView.setupWithNavController(navController)
+
+//        val fragmentList = arrayListOf<Fragment>(
+//            CurrentWeatherFragment(),
+//            FutureWeatherFragment(),
+//            OtherCitiesFragment()
+//        )
+//        val adapter = ViewPagerAdapter(
+//            fragmentList,
+//            this.supportFragmentManager,
+//            lifecycle
+//        )
+//        binding.viewPager2.adapter = adapter
     }
 
 

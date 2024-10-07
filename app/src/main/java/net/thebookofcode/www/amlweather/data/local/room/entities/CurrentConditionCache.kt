@@ -1,11 +1,25 @@
 package net.thebookofcode.www.amlweather.data.local.room.entities
 
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 
-@Entity(tableName = "others")
-data class OtherWeatherCache(
+@Entity(
+    tableName = "currentWeather",
+    foreignKeys = [ForeignKey(
+        entity = WeatherCache::class,
+        parentColumns = ["weatherId"],
+        childColumns = ["weatherId"],
+        onDelete = ForeignKey.CASCADE
+    )]
+    )
+data class CurrentConditionCache(
+    @PrimaryKey//(autoGenerate = true)
+    val currentConditionId:Long,
+
+    val weatherId:Long,
+
     @SerializedName("datetime")
     val datetime: String,
 
@@ -13,7 +27,7 @@ data class OtherWeatherCache(
     val temp: Double,
 
     @SerializedName("feelsLike")
-    val feelslike: Double,
+    val feelsLike: Double,
 
     @SerializedName("humidity")
     val humidity: Double,
@@ -25,24 +39,24 @@ data class OtherWeatherCache(
     val snow: Double,
 
     @SerializedName("snowDepth")
-    val snowdepth: Double,
+    val snowDepth: Double,
 
     @SerializedName("conditions")
     val condition: String,
 
     @SerializedName("windSpeed")
-    val windspeed: Double,
+    val windSpeed: Double,
 
     @SerializedName("windDir")
-    val winddir: Double,
+    val windDir: Double,
 
     @SerializedName("cloudCover")
-    val cloudcover: Double,
+    val cloudCover: Double,
 
     @SerializedName("icon")
-    val icon: String
+    val icon: String,
 
-){
-    @PrimaryKey
+    ){
     var town:String = ""
 }
+

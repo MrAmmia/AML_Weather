@@ -5,13 +5,13 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import net.thebookofcode.www.amlweather.R
 import net.thebookofcode.www.amlweather.databinding.CurrentListLayoutBinding
-import net.thebookofcode.www.amlweather.data.local.room.entities.HoursCache
+import net.thebookofcode.www.amlweather.data.local.room.entities.HourCache
 import kotlin.collections.HashMap
 
-class CurrentRecyclerAdapter(val hours:List<HoursCache>):RecyclerView.Adapter<CurrentRecyclerAdapter.ViewHolder>() {
+class CurrentRecyclerAdapter(val hours:List<HourCache>):RecyclerView.Adapter<CurrentRecyclerAdapter.ViewHolder>() {
 
     inner class ViewHolder(private val itemBinding:CurrentListLayoutBinding): RecyclerView.ViewHolder(itemBinding.root){
-        fun bind(hour: HoursCache) = with(itemBinding){
+        fun bind(hour: HourCache) = with(itemBinding){
             icon.setImageResource(getIcon(hour.icon)!!)
             temp.text = farenheitToDegree(hour.temp)
             time.text = hour.time

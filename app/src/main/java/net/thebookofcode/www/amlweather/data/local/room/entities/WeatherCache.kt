@@ -1,12 +1,14 @@
 package net.thebookofcode.www.amlweather.data.local.room.entities
 
 import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
-import net.thebookofcode.www.amlweather.data.remote.responses.entities.CurrentConditions
-import net.thebookofcode.www.amlweather.data.remote.responses.entities.Days
 
 @Entity(tableName = "weather")
 data class WeatherCache(
+    @PrimaryKey(autoGenerate = false)
+    val weatherId:Long,
+
     @SerializedName("latitude")
     val latitude: Double,
 
@@ -20,23 +22,23 @@ data class WeatherCache(
     val address: String,
 
     @SerializedName("description")
-    val description: String,
+    val description: String?,
 
     @SerializedName("conditions")
-    val condition: String,
+    val condition: String?,
 
 
     @SerializedName("timezone")
     val timezone: String,
 
-    @SerializedName("tzoffset")
+    @SerializedName("tzOffset")
     val tzoffset: Double,
 
-    @SerializedName("days")
-    val days: List<Days>,
-
-    @SerializedName("currentConditions")
-    val currentConditions: CurrentConditions
+//    @SerializedName("days")
+//    val days: List<DaysCache>,
+//
+//    @SerializedName("currentWeather")
+//    val currentConditions: CurrentConditionsCache
 
 ) {
 }

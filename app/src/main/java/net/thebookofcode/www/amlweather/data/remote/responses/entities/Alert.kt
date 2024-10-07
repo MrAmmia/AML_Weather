@@ -2,7 +2,7 @@ package net.thebookofcode.www.amlweather.data.remote.responses.entities
 
 import com.google.gson.annotations.SerializedName
 
-data class Alerts(
+data class Alert(
     @SerializedName("event")
     val event: String,
 

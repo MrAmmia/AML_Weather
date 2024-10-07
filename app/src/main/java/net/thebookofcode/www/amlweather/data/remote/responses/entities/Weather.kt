@@ -56,14 +56,14 @@ data class Weather(
     @SerializedName("timezone")
     val timezone: String,
 
-    @SerializedName("tzoffset")
-    val tzoffset: Double,
+    @SerializedName("tzOffset")
+    val tzOffset: Double,
 
     @SerializedName("days")
-    val days: List<Days>,
+    val days: List<Day>,
 
     @SerializedName("currentConditions")
-    val currentConditions: CurrentConditions
+    val currentCondition: CurrentCondition
 ) {
     var town: String? = null
 }

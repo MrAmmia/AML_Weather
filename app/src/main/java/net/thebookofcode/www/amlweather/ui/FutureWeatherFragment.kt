@@ -1,7 +1,6 @@
 package net.thebookofcode.www.amlweather.ui
 
 import android.Manifest
-import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
@@ -13,14 +12,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import net.thebookofcode.www.amlweather.R
 import net.thebookofcode.www.amlweather.logic.adapter.FutureRecyclerAdapter
 import net.thebookofcode.www.amlweather.databinding.FragmentFutureWeatherBinding
 import net.thebookofcode.www.amlweather.logic.model.MainViewModel
-import net.thebookofcode.www.amlweather.data.local.room.entities.DaysCache
+import net.thebookofcode.www.amlweather.data.local.room.entities.DayCache
 import net.thebookofcode.www.amlweather.logic.util.Resource
 import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.checkLocation
 import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.errorOccurred
@@ -30,9 +29,6 @@ import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.formatPercen
 import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.getFormattedDate
 import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.getIcon
 import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.showInContextUI
-import java.text.SimpleDateFormat
-import java.util.*
-import kotlin.collections.HashMap
 
 class FutureWeatherFragment : Fragment() {
     private var _binding: FragmentFutureWeatherBinding? = null
@@ -84,13 +80,23 @@ class FutureWeatherFragment : Fragment() {
                         // Got last known location. In some rare situations this can be null.
                         if (location != null) {
                             //viewModel.getWeatherByLocation(location.longitude, location.latitude)
-                            viewModel.getDays(location.longitude,location.latitude)
+                            viewModel.getLiveDays(location.longitude,location.latitude)
                             binding.swipeRefresh.setOnRefreshListener {
-                                viewModel.initiate(location.longitude,location.latitude)
+                                viewModel.getLiveDays(location.longitude,location.latitude)
                             }
 
                         } else {
-                            checkLocation(requireContext())
+                            viewModel.isWeatherCacheAvailable()
+                                .observe(viewLifecycleOwner, Observer { cacheIsAvailable ->
+                                    if (cacheIsAvailable) {
+                                        viewModel.getCachedDays()
+                                        binding.swipeRefresh.setOnRefreshListener {
+                                            viewModel.getCachedDays()
+                                        }
+                                    } else {
+                                        checkLocation(requireContext())
+                                    }
+                                })
                         }
                     }
             }
@@ -126,7 +132,7 @@ class FutureWeatherFragment : Fragment() {
                         errorOccurred(requireContext(),result.error!!)
                     }
                     is Resource.Success -> {
-                        showDaysInViews(result.data!!)
+                        showDaysInViews(result.data!!.days)
                         stopShimmer()
                         shimmerGone()
                         layoutsVisible()
@@ -135,11 +141,15 @@ class FutureWeatherFragment : Fragment() {
             }
         })
 
+        binding.imgBack.setOnClickListener {
+            findNavController().popBackStack()
+        }
+
         return binding.root
     }
 
     private fun showDaysInViews(
-        data: List<DaysCache>
+        data: List<DayCache>
     ) {
         binding.txtCondition.text = data[0].icon
         binding.txtTemp.text = farenheitToDegree(data[0].temp)
