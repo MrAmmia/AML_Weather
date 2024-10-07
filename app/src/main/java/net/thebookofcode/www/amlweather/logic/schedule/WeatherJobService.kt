@@ -12,6 +12,7 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -19,6 +20,7 @@ import net.thebookofcode.www.amlweather.logic.repository.MainRepository
 import javax.inject.Inject
 
 
+@AndroidEntryPoint
 class WeatherJobService : JobService() {
 
     @Inject
