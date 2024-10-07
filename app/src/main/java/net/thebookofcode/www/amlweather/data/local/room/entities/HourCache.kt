@@ -2,6 +2,7 @@ package net.thebookofcode.www.amlweather.data.local.room.entities
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
@@ -11,7 +12,8 @@ import androidx.room.PrimaryKey
         parentColumns = ["date"],
         childColumns = ["date"],
         onDelete = ForeignKey.CASCADE
-    )]
+    )],
+    indices = [Index(value = ["date"])]
 )
 data class HourCache(
     //@PrimaryKey

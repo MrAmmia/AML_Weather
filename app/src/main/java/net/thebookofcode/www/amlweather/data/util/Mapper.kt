@@ -59,11 +59,7 @@ class Mapper {
         }
 
         fun mapDaysToCache(days: List<Day>, weatherId: Long): List<DayCache> {
-            val arrayToReturn = arrayListOf<DayCache>()
-            for (day in days) {
-                arrayToReturn.add(mapDayToCache(day, weatherId))
-            }
-            return arrayToReturn
+            return days.map { day -> mapDayToCache(day, weatherId) }
         }
 
         fun mapDayToCache(day: Day, weatherId: Long): DayCache {
@@ -75,11 +71,7 @@ class Mapper {
         }
 
         fun mapHoursToCache(hours: List<Hour>, date: String): List<HourCache> {
-            val arrayToReturn = arrayListOf<HourCache>()
-            for (hour in hours) {
-                arrayToReturn.add(mapHourToCache(hour, date))
-            }
-            return arrayToReturn
+            return hours.map { hour -> mapHourToCache(hour, date) }
         }
 
         fun mapHourToCache(hour: Hour, date: String): HourCache {

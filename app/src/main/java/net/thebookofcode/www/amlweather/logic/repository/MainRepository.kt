@@ -36,7 +36,6 @@ class MainRepository
         latNum: Double
     ): Flow<Resource<CurrentWeatherFragmentData>> = flow {
         emit(Resource.Loading())
-
         try {
             val response = visualCrossingApi.getWeatherByLocation(longNum, latNum)
             if (response.isSuccessful) {

@@ -161,7 +161,7 @@ class FutureWeatherFragment : Fragment() {
         binding.txtCondition.text = data[0].icon
         binding.txtTemp.text = farenheitToDegree(data[0].temp)
         binding.txtDate.text = getFormattedDate(data[0].date)
-        binding.imgIcon.setImageResource(getIcon(data[0].icon)!!)
+        binding.imgIcon.setImageResource(getIcon(data[0].icon))
         binding.humidity.text = formatPercent(data[0].humidity)
         binding.wind.text = formatKilometers(data[0].windspeed)
         binding.cloudCover.text = formatPercent(data[0].cloudcover)

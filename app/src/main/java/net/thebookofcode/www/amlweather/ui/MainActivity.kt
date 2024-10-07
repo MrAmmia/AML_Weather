@@ -13,7 +13,6 @@ import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
 import net.thebookofcode.www.amlweather.R
-import net.thebookofcode.www.amlweather.logic.adapter.ViewPagerAdapter
 import net.thebookofcode.www.amlweather.databinding.ActivityMainBinding
 import net.thebookofcode.www.amlweather.logic.schedule.WeatherJobService
 import net.thebookofcode.www.amlweather.logic.util.ConnectivityObserver

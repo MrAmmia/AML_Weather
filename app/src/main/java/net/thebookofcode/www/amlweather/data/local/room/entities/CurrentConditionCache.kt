@@ -2,6 +2,7 @@ package net.thebookofcode.www.amlweather.data.local.room.entities
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 
@@ -12,13 +13,14 @@ import com.google.gson.annotations.SerializedName
         parentColumns = ["weatherId"],
         childColumns = ["weatherId"],
         onDelete = ForeignKey.CASCADE
-    )]
-    )
+    )],
+    indices = [Index(value = ["weatherId"])]
+)
 data class CurrentConditionCache(
     @PrimaryKey//(autoGenerate = true)
-    val currentConditionId:Long,
+    val currentConditionId: Long,
 
-    val weatherId:Long,
+    val weatherId: Long,
 
     @SerializedName("datetime")
     val datetime: String,
@@ -56,7 +58,7 @@ data class CurrentConditionCache(
     @SerializedName("icon")
     val icon: String,
 
-    ){
-    var town:String = ""
+    ) {
+    var town: String = ""
 }
 

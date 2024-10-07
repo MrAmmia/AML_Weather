@@ -257,7 +257,7 @@ class CurrentWeatherFragment : Fragment() {
         txtDate.text = getFormattedDate()
         txtTemp.text = farenheitToDegree(data.temp)
         txtAddress.text = data.town
-        imgIcon.setImageResource(getIcon(data.icon)!!)
+        imgIcon.setImageResource(getIcon(data.icon))
         txtCondition.text = data.condition
     }
 

@@ -38,28 +38,28 @@ class MainViewModel
 
 
     //Use this method to refresh
-    fun initiate(longNum: Double, latNum: Double) {
-        towns.add("London,Uk")
-        towns.add("Berlin,Germany")
-        towns.add("Madrid,Spain")
-        towns.add("Cairo,Egypt")
-        towns.add("Dhaka,Bangladesh")
-        towns.add("Bogotta,Colombia")
-        towns.add("Paris,France")
-        towns.add("Johannesburg,South Africa")
-        towns.add("Lagos,Nigeria")
-        towns.add("Lisbon,Portugal")
-        viewModelScope.launch {
-            //repository.initiate(longNum, latNum)
-            try {
-                repository.getLiveOtherWeather(towns).onEach {
-                    _others.value = Event(it)
-                }.launchIn(viewModelScope)
-            } catch (e: Exception) {
-                _others.value = Event(Resource.Error(e.message!!))
-            }
-        }
-    }
+//    fun initiate(longNum: Double, latNum: Double) {
+//        towns.add("London,Uk")
+//        towns.add("Berlin,Germany")
+//        towns.add("Madrid,Spain")
+//        towns.add("Cairo,Egypt")
+//        towns.add("Dhaka,Bangladesh")
+//        towns.add("Bogotta,Colombia")
+//        towns.add("Paris,France")
+//        towns.add("Johannesburg,South Africa")
+//        towns.add("Lagos,Nigeria")
+//        towns.add("Lisbon,Portugal")
+//        viewModelScope.launch {
+//            //repository.initiate(longNum, latNum)
+//            try {
+//                repository.getLiveOtherWeather(towns).onEach {
+//                    _others.value = Event(it)
+//                }.launchIn(viewModelScope)
+//            } catch (e: Exception) {
+//                _others.value = Event(Resource.Error(e.message!!))
+//            }
+//        }
+//    }
 
     fun getLiveWeather(longNum: Double, latNum: Double) {
         viewModelScope.launch {
