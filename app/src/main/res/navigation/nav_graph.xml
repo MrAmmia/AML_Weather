@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/currentWeatherFragment">
+
+    <fragment
+        android:id="@+id/currentWeatherFragment"
+        android:name="net.thebookofcode.www.amlweather.ui.CurrentWeatherFragment"
+        android:label="fragment_current_weather"
+        tools:layout="@layout/fragment_current_weather" >
+        <action
+            android:id="@+id/action_currentWeatherFragment_to_futureWeatherFragment"
+            app:destination="@id/futureWeatherFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/futureWeatherFragment"
+        android:name="net.thebookofcode.www.amlweather.ui.FutureWeatherFragment"
+        android:label="fragment_future_weather"
+        tools:layout="@layout/fragment_future_weather" />
+    <fragment
+        android:id="@+id/otherCitiesFragment"
+        android:name="net.thebookofcode.www.amlweather.ui.OtherCitiesFragment"
+        android:label="fragment_other_cities"
+        tools:layout="@layout/fragment_other_cities" />
+</navigation>
