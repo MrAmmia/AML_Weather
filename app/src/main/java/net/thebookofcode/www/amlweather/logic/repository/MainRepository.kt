@@ -1,5 +1,6 @@
 package net.thebookofcode.www.amlweather.logic.repository
 
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import net.thebookofcode.www.amlweather.data.remote.api.VisualCrossingApi
@@ -7,6 +8,7 @@ import net.thebookofcode.www.amlweather.data.local.room.dao.WeatherDao
 import net.thebookofcode.www.amlweather.data.local.room.entities.OtherWeatherCache
 import net.thebookofcode.www.amlweather.data.ui.CurrentWeatherFragmentData
 import net.thebookofcode.www.amlweather.data.ui.FutureWeatherFragmentData
+import net.thebookofcode.www.amlweather.data.util.Constants.Companion.STALE_THRESHOLD
 import net.thebookofcode.www.amlweather.data.util.Mapper.Companion.mapCurrentConditionToCache
 import net.thebookofcode.www.amlweather.data.util.Mapper.Companion.mapDayToCache
 import net.thebookofcode.www.amlweather.logic.util.Resource
@@ -14,6 +16,9 @@ import net.thebookofcode.www.amlweather.data.util.Mapper.Companion.mapDaysToCach
 import net.thebookofcode.www.amlweather.data.util.Mapper.Companion.mapHoursToCache
 import net.thebookofcode.www.amlweather.data.util.Mapper.Companion.mapOtherCurrentConditionToCache
 import net.thebookofcode.www.amlweather.data.util.Mapper.Companion.mapWeatherToCache
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import javax.inject.Inject
 
 class MainRepository
@@ -66,8 +71,9 @@ class MainRepository
                             liveWeather.days,
                             weatherId.toLong()
                         )
-                    weatherDao.deleteAllDays()
-                    weatherDao.insertDays(liveDays)
+                    // never uncomment this code as it will delete all hours because of ForeignKey relationship
+                    // weatherDao.deleteAllDays()
+                    weatherDao.insertDays(liveDays.subList(1,liveDays.size))
                     emit(Resource.Success(currentWeatherFragmentData))
                 }
 
@@ -101,6 +107,22 @@ class MainRepository
         return weatherDao.getWeatherCount()
     }
 
+    override suspend fun getCachedDaysCount(): Int {
+        return weatherDao.getDaysCount()
+    }
+
+    override suspend fun isDayCacheFreshAndAvailable(): Boolean {
+        val cachedDay = weatherDao.getDays().firstOrNull()
+        val today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+        return cachedDay != null && cachedDay.date == today
+    }
+
+    override suspend fun isWeatherCacheFresh(): Boolean {
+        val currentTime = System.currentTimeMillis()
+        val cachedWeather = weatherDao.getWeather()
+        return currentTime - cachedWeather.weather.lastUpdated < STALE_THRESHOLD
+    }
+
 
     override suspend fun getCachedOthersCount(): Int {
         return weatherDao.getHoursCount()
@@ -114,7 +136,7 @@ class MainRepository
             emit(
                 Resource.Success(
                     FutureWeatherFragmentData(
-                        days.subList(1,days.size)
+                        days.subList(1, days.size)
                     )
                 )
             )

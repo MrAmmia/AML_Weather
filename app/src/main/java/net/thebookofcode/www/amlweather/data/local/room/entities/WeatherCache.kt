@@ -31,8 +31,10 @@ data class WeatherCache(
     @SerializedName("timezone")
     val timezone: String,
 
-    @SerializedName("tzOffset")
-    val tzoffset: Double,
+    @SerializedName("tzoffset")
+    val tzOffset: Double,
+
+    val lastUpdated: Long = System.currentTimeMillis()
 
 //    @SerializedName("days")
 //    val days: List<DaysCache>,

@@ -92,26 +92,26 @@ class CurrentWeatherFragment : Fragment() {
                 fusedLocationClient.lastLocation
                     .addOnSuccessListener { location: Location? ->
                         // Got last known location. In some rare situations this can be null.
-                        if (location != null) {
-                            viewModel.getLiveWeather(location.longitude, location.latitude)
-                            binding.swipeRefresh.setOnRefreshListener {
-                                viewModel.getLiveWeather(location.longitude, location.latitude)
-                            }
-                        } else {
-                            // location is null, so check if cache is available
-                            viewModel.isWeatherCacheAvailable()
-                                .observe(viewLifecycleOwner, Observer { cacheIsAvailable ->
-                                    if (cacheIsAvailable) {
+                        viewModel.isWeatherCacheAvailableAndFresh()
+                            .observe(viewLifecycleOwner, Observer { cacheIsAvailableAndFresh ->
+                                if (cacheIsAvailableAndFresh) {
+                                    viewModel.getCachedWeather()
+                                    binding.swipeRefresh.setOnRefreshListener {
                                         viewModel.getCachedWeather()
+                                    }
+                                } else {
+                                    if (location != null) {
+                                        viewModel.getLiveWeather(location.longitude, location.latitude)
                                         binding.swipeRefresh.setOnRefreshListener {
-                                            viewModel.getCachedWeather()
+                                            viewModel.getLiveWeather(location.longitude, location.latitude)
                                         }
                                     } else {
+                                        // location is null, so check if cache is available
                                         checkLocation(requireContext())
                                     }
-                                })
+                                }
+                            })
 
-                        }
                     }
             }
 

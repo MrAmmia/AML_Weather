@@ -86,10 +86,18 @@ class MainViewModel
         }
     }
 
-    fun isWeatherCacheAvailable(): LiveData<Boolean> {
+    fun isWeatherCacheAvailableAndFresh(): LiveData<Boolean> {
         val result = MutableLiveData<Boolean>()
         viewModelScope.launch {
-            result.value = repository.getCachedWeatherCount() > 0
+            result.value = repository.getCachedWeatherCount() > 0 && repository.isWeatherCacheFresh()
+        }
+        return result
+    }
+
+    fun isFutureWeatherCacheAvailableAndFresh(): LiveData<Boolean> {
+        val result = MutableLiveData<Boolean>()
+        viewModelScope.launch {
+            result.value = repository.isDayCacheFreshAndAvailable()
         }
         return result
     }

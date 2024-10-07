@@ -10,7 +10,7 @@ import net.thebookofcode.www.amlweather.data.local.room.entities.OtherWeatherCac
 import net.thebookofcode.www.amlweather.data.local.room.entities.WeatherCache
 
 @Database(entities = [CurrentConditionCache::class, HourCache::class,
-    DayCache::class, OtherWeatherCache::class, WeatherCache::class], version = 2)
+    DayCache::class, OtherWeatherCache::class, WeatherCache::class], version = 3)
 abstract class WeatherDatabase:RoomDatabase() {
     abstract fun weatherDao(): WeatherDao
 

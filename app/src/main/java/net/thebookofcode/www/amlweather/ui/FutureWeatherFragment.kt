@@ -77,27 +77,31 @@ class FutureWeatherFragment : Fragment() {
                 // You can use the API that requires the permission.
                 fusedLocationClient.lastLocation
                     .addOnSuccessListener { location: Location? ->
-                        // Got last known location. In some rare situations this can be null.
-                        if (location != null) {
-                            //viewModel.getWeatherByLocation(location.longitude, location.latitude)
-                            viewModel.getLiveDays(location.longitude,location.latitude)
-                            binding.swipeRefresh.setOnRefreshListener {
-                                viewModel.getLiveDays(location.longitude,location.latitude)
-                            }
-
-                        } else {
-                            viewModel.isWeatherCacheAvailable()
-                                .observe(viewLifecycleOwner, Observer { cacheIsAvailable ->
-                                    if (cacheIsAvailable) {
+                        viewModel.isFutureWeatherCacheAvailableAndFresh()
+                            .observe(viewLifecycleOwner, Observer { cacheIsAvailableAndFresh ->
+                                if (cacheIsAvailableAndFresh) {
+                                    viewModel.getCachedDays()
+                                    binding.swipeRefresh.setOnRefreshListener {
                                         viewModel.getCachedDays()
+                                    }
+                                } else {
+                                    // Got last known location. In some rare situations this can be null.
+                                    if (location != null) {
+                                        //viewModel.getWeatherByLocation(location.longitude, location.latitude)
+                                        viewModel.getLiveDays(location.longitude, location.latitude)
                                         binding.swipeRefresh.setOnRefreshListener {
-                                            viewModel.getCachedDays()
+                                            viewModel.getLiveDays(
+                                                location.longitude,
+                                                location.latitude
+                                            )
                                         }
+
                                     } else {
                                         checkLocation(requireContext())
                                     }
-                                })
-                        }
+                                }
+                            })
+
                     }
             }
 
@@ -108,6 +112,7 @@ class FutureWeatherFragment : Fragment() {
                 // continue using your app without granting the permission.
                 showInContextUI(requireContext())
             }
+
             else -> {
                 // You can directly ask for the permission.
                 // The registered ActivityResultCallback gets the result of this request.
@@ -125,12 +130,14 @@ class FutureWeatherFragment : Fragment() {
                         shimmerVisible()
                         layoutsGone()
                     }
+
                     is Resource.Error -> {
                         startShimmer()
                         shimmerVisible()
                         layoutsGone()
-                        errorOccurred(requireContext(),result.error!!)
+                        errorOccurred(requireContext(), result.error!!)
                     }
+
                     is Resource.Success -> {
                         showDaysInViews(result.data!!.days)
                         stopShimmer()

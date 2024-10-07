@@ -103,7 +103,7 @@ class Mapper {
                 description = weather.description,
                 condition = weather.condition,
                 timezone = weather.timezone,
-                tzoffset = weather.tzOffset,
+                tzOffset = weather.tzOffset,
             )
         }
     }

@@ -27,11 +27,14 @@ interface WeatherDao {
     suspend fun insertDay(day:DayCache)
 
     @Transaction
-    @Query("SELECT * FROM weather")
+    @Query("SELECT * FROM weather LIMIT 1")
     suspend fun getWeather():WeatherWithCurrentConditionAndDay
 
     @Query("SELECT COUNT(*) FROM weather")
     suspend fun getWeatherCount():Int
+
+    @Query("SELECT COUNT(*) FROM days")
+    suspend fun getDaysCount():Int
 
     @Query("SELECT * FROM days")
     suspend fun getDays():List<DayCache>

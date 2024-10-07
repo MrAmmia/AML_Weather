@@ -18,6 +18,12 @@ interface MainRepositoryInterface {
 
     suspend fun getCachedWeatherCount(): Int
 
+    suspend fun getCachedDaysCount(): Int
+
+    suspend fun isWeatherCacheFresh(): Boolean
+
+    suspend fun isDayCacheFreshAndAvailable(): Boolean
+
     fun getCachedDays(): Flow<Resource<FutureWeatherFragmentData>>
 
     fun getLiveDays(longNum: Double, latNum: Double): Flow<Resource<FutureWeatherFragmentData>>
