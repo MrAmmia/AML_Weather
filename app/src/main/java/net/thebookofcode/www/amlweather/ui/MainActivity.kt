@@ -1,5 +1,9 @@
 package net.thebookofcode.www.amlweather.ui
 
+import android.app.job.JobInfo
+import android.app.job.JobScheduler
+import android.content.ComponentName
+import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -11,6 +15,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import net.thebookofcode.www.amlweather.R
 import net.thebookofcode.www.amlweather.logic.adapter.ViewPagerAdapter
 import net.thebookofcode.www.amlweather.databinding.ActivityMainBinding
+import net.thebookofcode.www.amlweather.logic.schedule.WeatherJobService
 import net.thebookofcode.www.amlweather.logic.util.ConnectivityObserver
 
 @AndroidEntryPoint
@@ -51,17 +56,17 @@ class MainActivity : AppCompatActivity() {
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
         bottomNavigationView.setupWithNavController(navController)
 
-//        val fragmentList = arrayListOf<Fragment>(
-//            CurrentWeatherFragment(),
-//            FutureWeatherFragment(),
-//            OtherCitiesFragment()
-//        )
-//        val adapter = ViewPagerAdapter(
-//            fragmentList,
-//            this.supportFragmentManager,
-//            lifecycle
-//        )
-//        binding.viewPager2.adapter = adapter
+        val jobScheduler = getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
+
+        val jobInfo = JobInfo.Builder(1, ComponentName(this, WeatherJobService::class.java))
+            .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)  // Requires network
+            .setRequiresCharging(false)                        // Doesn't need charging
+            .setPeriodic(6 * 60 * 60 * 1000)                   // Run every 6 hours
+            .build()
+
+        jobScheduler.schedule(jobInfo)
+
+
     }
 
 
