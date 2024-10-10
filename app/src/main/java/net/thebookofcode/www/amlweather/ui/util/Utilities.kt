@@ -70,7 +70,7 @@ class Utilities {
             iconMap["thunder-showers-night"] = R.drawable.thunder_shower_night
             iconMap["showers-day"] = R.drawable.showers_day
             iconMap["showers-night"] = R.drawable.showers_night
-            return iconMap[icon] ?: R.drawable.ic_no_icon
+            return iconMap[icon] ?: R.drawable.no_icon
         }
 
         fun formatPercent(item: Double): String {

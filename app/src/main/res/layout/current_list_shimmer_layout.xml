@@ -16,19 +16,21 @@
 
     <TextView
         android:layout_width="48dp"
-        android:layout_height="6dp"
+        android:layout_height="wrap_content"
+        android:text="loren"
         android:layout_gravity="center"
         android:background="@color/shimmer"
         android:textSize="20sp"
-        android:textColor="@color/white"
+        android:textColor="@color/shimmer"
         android:layout_marginBottom="12dp"/>
 
 
     <TextView
         android:layout_width="48dp"
-        android:layout_height="6dp"
+        android:layout_height="wrap_content"
+        android:text="loren"
         android:layout_gravity="center"
         android:background="@color/shimmer"
-        android:textColor="@color/white"
+        android:textColor="@color/shimmer"
         android:layout_marginBottom="24dp"/>
 </LinearLayout>

@@ -8,10 +8,12 @@ import net.thebookofcode.www.amlweather.databinding.CurrentListLayoutBinding
 import net.thebookofcode.www.amlweather.data.local.room.entities.HourCache
 import kotlin.collections.HashMap
 
-class CurrentRecyclerAdapter(val hours:List<HourCache>):RecyclerView.Adapter<CurrentRecyclerAdapter.ViewHolder>() {
+class CurrentRecyclerAdapter(var hours: List<HourCache>) :
+    RecyclerView.Adapter<CurrentRecyclerAdapter.ViewHolder>() {
 
-    inner class ViewHolder(private val itemBinding:CurrentListLayoutBinding): RecyclerView.ViewHolder(itemBinding.root){
-        fun bind(hour: HourCache) = with(itemBinding){
+    inner class ViewHolder(private val itemBinding: CurrentListLayoutBinding) :
+        RecyclerView.ViewHolder(itemBinding.root) {
+        fun bind(hour: HourCache) = with(itemBinding) {
             icon.setImageResource(getIcon(hour.icon)!!)
             temp.text = farenheitToDegree(hour.temp)
             time.text = hour.time
@@ -19,7 +21,8 @@ class CurrentRecyclerAdapter(val hours:List<HourCache>):RecyclerView.Adapter<Cur
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val itemBinding = CurrentListLayoutBinding.inflate(LayoutInflater.from(parent.context),parent,false)
+        val itemBinding =
+            CurrentListLayoutBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(itemBinding)
     }
 
@@ -31,6 +34,7 @@ class CurrentRecyclerAdapter(val hours:List<HourCache>):RecyclerView.Adapter<Cur
     override fun getItemCount(): Int {
         return hours.size
     }
+
     fun farenheitToDegree(temp: Double): String {
         val doubleTemp = ((temp - 32) * 5) / 9
         return doubleTemp.toInt().toString() + "\u00b0"
@@ -55,5 +59,9 @@ class CurrentRecyclerAdapter(val hours:List<HourCache>):RecyclerView.Adapter<Cur
         iconMap["showers-day"] = R.drawable.showers_day
         iconMap["showers-night"] = R.drawable.showers_night
         return iconMap[icon]
+    }
+
+    fun setData(data: List<HourCache>) {
+        hours = data
     }
 }

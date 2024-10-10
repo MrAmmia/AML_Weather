@@ -9,7 +9,7 @@
     <TextView
         android:id="@+id/txtAddress1"
         android:layout_width="120dp"
-        android:layout_height="10dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="16dp"
         android:text="@string/loading"
@@ -23,7 +23,7 @@
     <TextView
         android:id="@+id/txtDate1"
         android:layout_width="120dp"
-        android:layout_height="10dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
         android:text="@string/loading"
         android:textColor="@color/shimmer"
@@ -59,7 +59,7 @@
     <TextView
         android:id="@+id/txtCondition1"
         android:layout_width="100dp"
-        android:layout_height="10dp"
+        android:layout_height="wrap_content"
         android:layout_marginVertical="16dp"
         android:text="@string/loading"
         android:textColor="@color/shimmer"
