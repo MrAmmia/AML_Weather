@@ -1,10 +1,21 @@
 package net.thebookofcode.www.amlweather.logic.repository
 
 import android.util.Log
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import net.thebookofcode.www.amlweather.data.remote.api.VisualCrossingApi
 import net.thebookofcode.www.amlweather.data.local.room.dao.WeatherDao
+import net.thebookofcode.www.amlweather.data.local.room.entities.CurrentConditionCache
+import net.thebookofcode.www.amlweather.data.local.room.entities.HourCache
 import net.thebookofcode.www.amlweather.data.local.room.entities.OtherWeatherCache
 import net.thebookofcode.www.amlweather.data.ui.CurrentWeatherFragmentData
 import net.thebookofcode.www.amlweather.data.ui.FutureWeatherFragmentData
@@ -72,7 +83,7 @@ class MainRepository
                         )
                     // never uncomment this code as it will delete all hours because of ForeignKey relationship
                     // weatherDao.deleteAllDays()
-                    weatherDao.insertDays(liveDays.subList(1,liveDays.size))
+                    weatherDao.insertDays(liveDays.subList(1, liveDays.size))
                     emit(Resource.Success(currentWeatherFragmentData))
                 }
 
@@ -93,7 +104,7 @@ class MainRepository
                         CurrentWeatherFragmentData(
                             weatherDao.getWeather().weather,
                             weatherDao.getCurrentConditionDefaultLocation(),
-                            weatherDao.getHours()
+                            emptyList()
                         )
                     )
                 )
@@ -101,6 +112,27 @@ class MainRepository
                 emit(Resource.Error(e.message!!))
             }
         }
+
+    fun getHours(): Flow<PagingData<HourCache>>  {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 4,
+                enablePlaceholders = false
+            ),
+            pagingSourceFactory = { weatherDao.getHours() }
+        ).flow
+
+
+    }
+
+    suspend fun getCurrentCondition(): Flow<Resource<CurrentConditionCache>> = flow {
+        try {
+            emit(Resource.Success(weatherDao.getCurrentConditionDefaultLocation()))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.message!!))
+        }
+    }
+
 
     override suspend fun getCachedWeatherCount(): Int {
         return weatherDao.getWeatherCount()

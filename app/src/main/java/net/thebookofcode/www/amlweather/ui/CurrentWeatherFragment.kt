@@ -13,16 +13,17 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import net.thebookofcode.www.amlweather.data.local.room.entities.CurrentConditionCache
-import net.thebookofcode.www.amlweather.data.local.room.entities.HourCache
-import net.thebookofcode.www.amlweather.data.ui.CurrentWeatherFragmentData
 import net.thebookofcode.www.amlweather.databinding.FragmentCurrentWeatherBinding
-import net.thebookofcode.www.amlweather.logic.adapter.CurrentRecyclerAdapter
+import net.thebookofcode.www.amlweather.logic.adapter.CurrentRecyclerPagingAdapter
 import net.thebookofcode.www.amlweather.logic.model.MainViewModel
 import net.thebookofcode.www.amlweather.logic.util.Resource
 import net.thebookofcode.www.amlweather.ui.util.Utilities.Companion.checkLocation
@@ -40,9 +41,10 @@ class CurrentWeatherFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel: MainViewModel by activityViewModels()
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    lateinit var adapter: CurrentRecyclerAdapter
+    lateinit var adapter: CurrentRecyclerPagingAdapter
 
     private var isShimmerLoading = false
+    private var isResultSuccessful = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -111,6 +113,15 @@ class CurrentWeatherFragment : Fragment() {
         }
 
         return binding.root
+    }
+
+    private fun observeHours() {
+        lifecycleScope.launch {
+            viewModel.hours.collectLatest {
+                adapter.submitData(it)
+            }
+        }
+        hoursShimmerDone()
     }
 
     private fun handleLocationPermissions(requestPermissionLauncher: ActivityResultLauncher<String>) {
@@ -192,8 +203,9 @@ class CurrentWeatherFragment : Fragment() {
                     }
 
                     is Resource.Success -> {
-                        shimmerDone()
-                        loadData(result.data!!)
+                        isResultSuccessful = true
+                        currentConditionShimmerDone()
+                        showCurrentConditionInViews(result.data!!.currentConditionCache)
                     }
                 }
 
@@ -201,41 +213,46 @@ class CurrentWeatherFragment : Fragment() {
         })
     }
 
-    private fun loadData(
-        data: CurrentWeatherFragmentData
-    ) {
-        showCurrentConditionInViews(data.currentConditionCache)
-        showHoursIViews(data.hourCache)
-    }
-
     private fun setupRecyclerView() = with(binding) {
-        adapter = CurrentRecyclerAdapter(emptyList())
+        adapter = CurrentRecyclerPagingAdapter()
         recyclerView.layoutManager =
             LinearLayoutManager(requireActivity(), LinearLayoutManager.HORIZONTAL, false)
         recyclerView.adapter = adapter
+        recyclerView.setHasFixedSize(true)
     }
 
     private fun shimmerLoading() = with(binding) {
 
-        shimmerLayout.startShimmer()
-        shimmerLayout.visibility=View.VISIBLE
+        shimmerCurrentLayout.startShimmer()
+        shimmerHoursLayout.startShimmer()
+        shimmerLayout.visibility = View.VISIBLE
         dataLayout.visibility = View.GONE
 
         isShimmerLoading = true
     }
 
-    private fun shimmerDone() = with(binding) {
+    private fun currentConditionShimmerDone() = with(binding) {
 
-        shimmerLayout.stopShimmer()
-        shimmerLayout.visibility=View.GONE
+        shimmerCurrentLayout.stopShimmer()
+        shimmerLayout.visibility = View.GONE
+        dataLayout.visibility = View.VISIBLE
+        currentLayout.visibility = View.VISIBLE
+        isShimmerLoading = false
+    }
+
+    private fun hoursShimmerDone() = with(binding) {
+        shimmerHoursLayout.stopShimmer()
+        shimmerHoursLayout.visibility - View.GONE
+        shimmerLayout.visibility = View.GONE
         dataLayout.visibility = View.VISIBLE
 
-        isShimmerLoading = false
+        recyclerView.visibility = View.VISIBLE
     }
 
     private fun showCurrentConditionInViews(
         data: CurrentConditionCache
     ) = with(binding) {
+        observeHours()
         humidity.text = formatPercent(data.humidity)
         wind.text = formatKilometers(data.windSpeed)
         cloudCover.text = formatPercent(data.cloudCover)
@@ -244,11 +261,6 @@ class CurrentWeatherFragment : Fragment() {
         txtAddress.text = data.town
         imgIcon.setImageResource(getIcon(data.icon))
         txtCondition.text = data.condition
-    }
-
-    private fun showHoursIViews(data: List<HourCache>) {
-        adapter.setData(data)
-        //adapter.notifyDataSetChanged()
     }
 
 

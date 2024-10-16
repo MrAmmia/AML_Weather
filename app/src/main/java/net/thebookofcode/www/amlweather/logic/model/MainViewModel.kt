@@ -2,10 +2,19 @@ package net.thebookofcode.www.amlweather.logic.model
 
 import android.util.Log
 import androidx.lifecycle.*
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import net.thebookofcode.www.amlweather.R
 import net.thebookofcode.www.amlweather.data.local.room.entities.*
 import net.thebookofcode.www.amlweather.logic.repository.MainRepository
 import net.thebookofcode.www.amlweather.data.ui.CurrentWeatherFragmentData
@@ -23,8 +32,8 @@ class MainViewModel
     private val _days = MutableLiveData<Event<Resource<FutureWeatherFragmentData>>>()
     var days: LiveData<Event<Resource<FutureWeatherFragmentData>>> = _days
 
-    private val _hours = MutableLiveData<Event<Resource<List<HourCache>>>>()
-    var hours: LiveData<Event<Resource<List<HourCache>>>> = _hours
+//    private val _hours = MutableLiveData<Event<Resource<List<HourCache>>>>()
+//    var hours: LiveData<Event<Resource<List<HourCache>>>> = _hours
 
     private val _weather = MutableLiveData<Event<Resource<CurrentWeatherFragmentData>>>()
     var weather: LiveData<Event<Resource<CurrentWeatherFragmentData>>> = _weather
@@ -34,32 +43,9 @@ class MainViewModel
     //val otherWeather = arrayListOf<Event<Resource<OtherWeatherCache>>>()
     var other: LiveData<Event<Resource<List<OtherWeatherCache>>>> = _others
 
-    val towns = arrayListOf<String>()
+    val hours: Flow<PagingData<HourCache>> = repository.getHours().cachedIn(viewModelScope)
 
 
-    //Use this method to refresh
-//    fun initiate(longNum: Double, latNum: Double) {
-//        towns.add("London,Uk")
-//        towns.add("Berlin,Germany")
-//        towns.add("Madrid,Spain")
-//        towns.add("Cairo,Egypt")
-//        towns.add("Dhaka,Bangladesh")
-//        towns.add("Bogotta,Colombia")
-//        towns.add("Paris,France")
-//        towns.add("Johannesburg,South Africa")
-//        towns.add("Lagos,Nigeria")
-//        towns.add("Lisbon,Portugal")
-//        viewModelScope.launch {
-//            //repository.initiate(longNum, latNum)
-//            try {
-//                repository.getLiveOtherWeather(towns).onEach {
-//                    _others.value = Event(it)
-//                }.launchIn(viewModelScope)
-//            } catch (e: Exception) {
-//                _others.value = Event(Resource.Error(e.message!!))
-//            }
-//        }
-//    }
 
     fun getLiveWeather(longNum: Double, latNum: Double) {
         viewModelScope.launch {
@@ -89,7 +75,8 @@ class MainViewModel
     fun isWeatherCacheAvailableAndFresh(): LiveData<Boolean> {
         val result = MutableLiveData<Boolean>()
         viewModelScope.launch {
-            result.value = repository.getCachedWeatherCount() > 0 && repository.isWeatherCacheFresh()
+            result.value =
+                repository.getCachedWeatherCount() > 0 && repository.isWeatherCacheFresh()
         }
         return result
     }
@@ -116,8 +103,8 @@ class MainViewModel
         viewModelScope.launch {
             try {
                 repository.getLiveDays(longNum, latNum).onEach {
-                        _days.value = Event(it)
-                    }.launchIn(viewModelScope)
+                    _days.value = Event(it)
+                }.launchIn(viewModelScope)
 
             } catch (e: Exception) {
                 _days.value = Event(Resource.Error(e.message!!))
@@ -136,7 +123,6 @@ class MainViewModel
             }
         }
     }
-
 
 
     fun getOthers(towns: ArrayList<String>) {
@@ -177,4 +163,24 @@ class MainViewModel
         }
         return result
     }
+
+//    fun getHours() {
+//        hoursState.update { it.copy(isLoading = true) }
+//
+//        viewModelScope.launch {
+//            val result = repository.getHours()
+//            hoursState.update {
+//                when (result) {
+//                    is Result.Success -> it.copy(hours = result.data, isLoading = false)
+//                    is Result.Error -> {
+//                        val errorMessages = it.errorMessages + ErrorMessage(
+//                            id = UUID.randomUUID().mostSignificantBits,
+//                            messageId = R.string.load_error
+//                        )
+//                        it.copy(errorMessages = errorMessages, isLoading = false)
+//                    }
+//                }
+//            }
+//        }
+//    }
 }
